@@ -1,12 +1,9 @@
-html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tic-Tac-Toe • Telegram Game</title>
-    <meta name="telegram:viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -91,24 +88,6 @@ html
         .logo-text {
             font-size: 20px;
             font-weight: 700;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: white;
         }
         
         /* Main Content */
@@ -384,7 +363,7 @@ html
             box-shadow: 0 0 8px var(--success);
         }
         
-        .status-indicator.searching {
+        .status-indicator.connecting {
             background: var(--warning);
             animation: pulse 1.5s infinite;
         }
@@ -423,13 +402,15 @@ html
             font-size: 14px;
         }
         
-        #peerId {
+        #roomCode {
             font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 3px;
             background: rgba(0, 0, 0, 0.2);
-            padding: 6px 10px;
-            border-radius: 6px;
-            word-break: break-all;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
@@ -571,6 +552,23 @@ html
             margin-top: 24px;
         }
         
+        /* Invite Link */
+        .invite-link {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            word-break: break-all;
+        }
+        
+        .invite-link-text {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--accent);
+        }
+        
         /* Footer */
         .footer {
             padding: 20px;
@@ -620,27 +618,11 @@ html
                 grid-template-columns: 1fr;
             }
         }
-        
-        /* Hide scrollbar but keep functionality */
-        ::-webkit-scrollbar {
-            width: 0;
-            background: transparent;
-        }
-        
-        /* Telegram specific styles */
-        .tg-button {
-            background: var(--tg-theme-button-color, var(--primary));
-            color: var(--tg-theme-button-text-color, white);
-        }
-        
-        .tg-secondary {
-            background: var(--tg-theme-secondary-bg-color, #232e3c);
-        }
     </style>
 </head>
 <body>
     <div class="app-container" id="appContainer">
-        <!-- Header with Telegram user info -->
+        <!-- Header -->
         <header class="header">
             <div class="logo">
                 <div class="logo-icon">
@@ -648,9 +630,9 @@ html
                 </div>
                 <div class="logo-text">Tic-Tac-Toe</div>
             </div>
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">U</div>
-                <div class="user-name" id="userName">User</div>
+            <div class="connection-status" style="padding: 8px 16px; border-radius: 20px;">
+                <div class="status-indicator" id="globalStatusIndicator"></div>
+                <div class="status-text" id="globalStatusText" style="font-size: 12px;">Офлайн</div>
             </div>
         </header>
         
@@ -669,8 +651,8 @@ html
                     <button class="btn btn-secondary" id="vsBotBtn">
                         <i class="fas fa-robot"></i> С ботом
                     </button>
-                    <button class="btn btn-outline" id="tournamentBtn">
-                        <i class="fas fa-trophy"></i> Турнир
+                    <button class="btn btn-outline" id="howToPlayBtn">
+                        <i class="fas fa-question-circle"></i> Как играть?
                     </button>
                 </div>
             </section>
@@ -747,7 +729,7 @@ html
                 <div class="online-info">
                     <div class="info-row">
                         <div class="info-label">Ваш ID:</div>
-                        <div class="info-value" id="peerId">Загрузка...</div>
+                        <div class="info-value" id="playerId">Загрузка...</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">Оппонент:</div>
@@ -766,8 +748,8 @@ html
                     <button class="btn btn-accent" id="joinRoomBtn">
                         <i class="fas fa-sign-in-alt"></i> Присоединиться
                     </button>
-                    <button class="btn btn-success" id="copyIdBtn">
-                        <i class="fas fa-copy"></i> Копировать ID
+                    <button class="btn btn-success" id="quickPlayBtn">
+                        <i class="fas fa-bolt"></i> Быстрая игра
                     </button>
                     <button class="btn btn-danger" id="disconnectBtn">
                         <i class="fas fa-sign-out-alt"></i> Выйти
@@ -775,34 +757,40 @@ html
                 </div>
             </section>
             
-            <!-- Invite Friends Panel (hidden initially) -->
-            <section class="online-panel fade-in" id="invitePanel" style="display: none;">
+            <!-- Create Room Panel -->
+            <section class="online-panel fade-in" id="createRoomPanel" style="display: none;">
                 <div class="online-header">
                     <div class="online-icon">
-                        <i class="fas fa-user-friends"></i>
+                        <i class="fas fa-door-open"></i>
                     </div>
-                    <div class="online-title">Пригласить друга</div>
+                    <div class="online-title">Создать комнату</div>
                 </div>
                 
                 <div class="online-info">
                     <div class="info-row">
-                        <div class="info-label">ID комнаты:</div>
-                        <div class="info-value" id="roomId">XXXXXX</div>
+                        <div class="info-label">Код комнаты:</div>
+                        <div class="info-value" id="roomCode">XXXXXX</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">Статус:</div>
                         <div class="info-value" id="roomStatus">Ожидание игрока...</div>
                     </div>
+                    <div class="info-row">
+                        <div class="info-label">Игроки:</div>
+                        <div class="info-value" id="roomPlayers">1/2</div>
+                    </div>
+                </div>
+                
+                <div class="invite-link">
+                    <div style="margin-bottom: 10px; font-size: 14px; opacity: 0.8;">Пригласите друга:</div>
+                    <div class="invite-link-text" id="inviteLinkText">Загрузка...</div>
                 </div>
                 
                 <div class="online-controls">
-                    <button class="btn btn-primary btn-full" id="shareInviteBtn">
-                        <i class="fab fa-telegram"></i> Поделиться в Telegram
-                    </button>
-                    <button class="btn btn-secondary" id="copyInviteBtn">
+                    <button class="btn btn-primary btn-full" id="copyInviteBtn">
                         <i class="fas fa-copy"></i> Копировать ссылку
                     </button>
-                    <button class="btn btn-outline" id="cancelInviteBtn">
+                    <button class="btn btn-outline" id="cancelRoomBtn">
                         <i class="fas fa-times"></i> Отмена
                     </button>
                 </div>
@@ -811,7 +799,7 @@ html
         
         <!-- Footer -->
         <footer class="footer">
-            <div>Игра работает в Telegram • Использует WebRTC для онлайн-игры</div>
+            <div>Крестики-Нолики • Онлайн игра работает через WebSocket</div>
         </footer>
     </div>
     
@@ -832,29 +820,30 @@ html
         </div>
     </div>
     
-    <!-- Invite Modal -->
-    <div class="modal" id="inviteModal">
+    <!-- Join Room Modal -->
+    <div class="modal" id="joinRoomModal">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-icon">
-                    <i class="fas fa-user-plus"></i>
+                    <i class="fas fa-sign-in-alt"></i>
                 </div>
-                <h2 class="modal-title">Присоединиться к игре</h2>
-                <p class="modal-text">Введите ID комнаты, чтобы присоединиться к игре:</p>
-                <input type="text" id="roomIdInput" placeholder="Введите ID комнаты" 
+                <h2 class="modal-title">Присоединиться к комнате</h2>
+                <p class="modal-text">Введите 6-значный код комнаты:</p>
+                <input type="text" id="roomCodeInput" placeholder="XXXXXX" 
+                       maxlength="6"
                        style="width: 100%; padding: 16px; margin: 20px 0; border-radius: 12px; 
                               background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-                              color: white; font-size: 16px;">
+                              color: white; font-size: 24px; text-align: center; letter-spacing: 5px; text-transform: uppercase;">
                 <div class="modal-buttons">
-                    <button class="btn btn-primary" id="joinByIdBtn">Присоединиться</button>
+                    <button class="btn btn-primary" id="joinRoomByIdBtn">Присоединиться</button>
                     <button class="btn btn-outline" id="cancelJoinBtn">Отмена</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Instructions Modal -->
-    <div class="modal" id="instructionsModal">
+    <!-- How to Play Modal -->
+    <div class="modal" id="howToPlayModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Как играть?</h2>
@@ -864,33 +853,29 @@ html
                     <strong>Режимы игры:</strong><br>
                     1. <strong>С другом</strong> - играйте на одном устройстве<br>
                     2. <strong>Онлайн</strong> - играйте с другом через интернет<br>
-                    3. <strong>С ботом</strong> - играйте против компьютера<br>
-                    4. <strong>Турнир</strong> - серия игр до 3 побед<br><br>
+                    3. <strong>С ботом</strong> - играйте против компьютера<br><br>
                     
-                    <strong>Управление:</strong> Нажимайте на клетки, чтобы сделать ход.<br><br>
+                    <strong>Онлайн игра:</strong><br>
+                    • Создайте комнату и поделитесь кодом с другом<br>
+                    • Или введите код комнаты друга<br>
+                    • Или используйте "Быстрая игра" для поиска случайного соперника<br><br>
                     
-                    <strong>Онлайн игра:</strong> Создайте комнату и поделитесь ID с другом, или введите ID комнаты друга.
+                    <strong>Управление:</strong> Нажимайте на клетки, чтобы сделать ход.
                 </p>
                 <div class="modal-buttons">
-                    <button class="btn btn-primary" onclick="closeModal('instructionsModal')">Понятно!</button>
+                    <button class="btn btn-primary" onclick="closeModal('howToPlayModal')">Понятно!</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Telegram Web App SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- PeerJS Library for P2P connections -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <!-- Socket.io Client -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     
     <script>
-        // Initialize Telegram Web App
-        const tg = window.Telegram.WebApp;
-        
         // Game State
         let gameState = {
-            mode: 'menu', // 'menu', 'local', 'online', 'bot', 'tournament'
+            mode: 'menu', // 'menu', 'local', 'online', 'bot'
             board: ['', '', '', '', '', '', '', '', ''],
             currentPlayer: 'X',
             gameActive: false,
@@ -898,23 +883,24 @@ html
             playerSide: 'X',
             playerName: 'Игрок',
             opponentName: 'Оппонент',
-            connection: null,
-            peer: null,
-            conn: null,
+            playerId: null,
+            socket: null,
             roomId: null,
-            tournament: { winsNeeded: 3, playerWins: 0, opponentWins: 0 }
+            inRoom: false,
+            isRoomOwner: false
         };
+        
+        // Socket.io connection
+        const SOCKET_SERVER_URL = 'https://tic-tac-toe-socket-server.onrender.com'; // Облачный сервер
         
         // DOM Elements
         const appContainer = document.getElementById('appContainer');
         const modeSelector = document.getElementById('modeSelector');
         const gameBoardContainer = document.getElementById('gameBoardContainer');
         const onlinePanel = document.getElementById('onlinePanel');
-        const invitePanel = document.getElementById('invitePanel');
+        const createRoomPanel = document.getElementById('createRoomPanel');
         const statsPanel = document.getElementById('statsPanel');
         const gameBoard = document.getElementById('gameBoard');
-        const userAvatar = document.getElementById('userAvatar');
-        const userName = document.getElementById('userName');
         const playerXName = document.getElementById('playerXName');
         const playerOName = document.getElementById('playerOName');
         const playerXStatus = document.getElementById('playerXStatus');
@@ -924,109 +910,26 @@ html
         const scoreX = document.getElementById('scoreX');
         const scoreO = document.getElementById('scoreO');
         const scoreDraw = document.getElementById('scoreDraw');
-        const peerIdElement = document.getElementById('peerId');
+        const playerIdElement = document.getElementById('playerId');
         const opponentNameElement = document.getElementById('opponentName');
         const playerSideElement = document.getElementById('playerSide');
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
-        const roomIdElement = document.getElementById('roomId');
+        const globalStatusIndicator = document.getElementById('globalStatusIndicator');
+        const globalStatusText = document.getElementById('globalStatusText');
+        const roomCodeElement = document.getElementById('roomCode');
         const roomStatusElement = document.getElementById('roomStatus');
+        const roomPlayersElement = document.getElementById('roomPlayers');
+        const inviteLinkText = document.getElementById('inviteLinkText');
         
-        // Initialize Telegram Web App
-        function initTelegram() {
-            // Expand the app to full height
-            tg.expand();
-            
-            // Set theme params
-            applyTheme();
-            
-            // Set user info
-            const user = tg.initDataUnsafe?.user;
-            if (user) {
-                gameState.playerName = user.first_name || 'Игрок';
-                if (user.last_name) gameState.playerName += ' ' + user.last_name;
-                userName.textContent = gameState.playerName;
-                
-                // Set avatar
-                if (user.username) {
-                    userAvatar.textContent = user.username.charAt(0).toUpperCase();
-                } else {
-                    userAvatar.textContent = gameState.playerName.charAt(0).toUpperCase();
-                }
-                
-                // Set player names
-                playerXName.textContent = gameState.playerName;
-            }
-            
-            // Set back button behavior
-            tg.BackButton.onClick(goBack);
-            
-            // Handle theme changes
-            tg.onEvent('themeChanged', applyTheme);
-            
-            // Handle viewport changes
-            tg.onEvent('viewportChanged', () => {
-                tg.expand();
-            });
-            
-            console.log('Telegram Web App initialized');
-        }
-        
-        // Apply Telegram theme
-        function applyTheme() {
-            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#17212b');
-            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
-            document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#708499');
-            document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#6ab3f3');
-            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#5288c1');
-            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
-            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#232e3c');
-        }
-        
-        // Navigation functions
-        function goBack() {
-            if (gameState.mode === 'online' && gameState.conn) {
-                disconnectFromPeer();
-            }
-            
-            showModeSelector();
-            tg.BackButton.hide();
-        }
-        
-        function showModeSelector() {
-            modeSelector.style.display = 'flex';
-            gameBoardContainer.style.display = 'none';
-            onlinePanel.style.display = 'none';
-            invitePanel.style.display = 'none';
-            statsPanel.style.display = 'grid';
-            gameState.mode = 'menu';
-        }
-        
-        function showGameBoard() {
-            modeSelector.style.display = 'none';
-            gameBoardContainer.style.display = 'flex';
-            onlinePanel.style.display = 'none';
-            invitePanel.style.display = 'none';
-            statsPanel.style.display = 'grid';
-            tg.BackButton.show();
-        }
-        
-        function showOnlinePanel() {
-            modeSelector.style.display = 'none';
-            gameBoardContainer.style.display = 'none';
-            onlinePanel.style.display = 'flex';
-            invitePanel.style.display = 'none';
-            statsPanel.style.display = 'none';
-            tg.BackButton.show();
-        }
-        
-        function showInvitePanel() {
-            modeSelector.style.display = 'none';
-            gameBoardContainer.style.display = 'none';
-            onlinePanel.style.display = 'none';
-            invitePanel.style.display = 'flex';
-            statsPanel.style.display = 'none';
-            tg.BackButton.show();
+        // Generate random player name
+        function generatePlayerName() {
+            const adjectives = ['Быстрый', 'Умный', 'Смелый', 'Ловкий', 'Мудрый', 'Сильный', 'Хитрый', 'Весёлый'];
+            const nouns = ['Игрок', 'Воин', 'Маг', 'Странник', 'Герой', 'Чемпион', 'Победитель', 'Мастер'];
+            const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+            const randomNum = Math.floor(Math.random() * 100);
+            return `${randomAdj}${randomNoun}${randomNum}`;
         }
         
         // Initialize game board
@@ -1048,7 +951,7 @@ html
             }
             
             // Check if it's player's turn in online mode
-            if (gameState.mode === 'online' && gameState.conn && 
+            if (gameState.mode === 'online' && 
                 gameState.currentPlayer !== gameState.playerSide) {
                 return;
             }
@@ -1057,9 +960,9 @@ html
             makeMove(index, gameState.currentPlayer);
             
             // Send move to opponent in online mode
-            if (gameState.mode === 'online' && gameState.conn) {
-                gameState.conn.send({
-                    type: 'move',
+            if (gameState.mode === 'online' && gameState.socket) {
+                gameState.socket.emit('makeMove', {
+                    roomId: gameState.roomId,
                     index: index,
                     player: gameState.currentPlayer
                 });
@@ -1076,14 +979,15 @@ html
             cell.textContent = player;
             cell.classList.add('occupied', player.toLowerCase());
             
+            // Add animation
+            cell.style.animation = 'none';
+            setTimeout(() => {
+                cell.style.animation = 'fadeIn 0.3s ease-out';
+            }, 10);
+            
             // Switch player
             gameState.currentPlayer = player === 'X' ? 'O' : 'X';
             updatePlayerTurn();
-            
-            // Vibrate on mobile
-            if (tg.platform !== 'unknown') {
-                tg.HapticFeedback.impactOccurred('light');
-            }
         }
         
         // Check game result
@@ -1119,20 +1023,12 @@ html
                 gameState.scores[winner]++;
                 updateScoreboard();
                 
-                // Handle tournament mode
-                if (gameState.mode === 'tournament') {
-                    if (winner === gameState.playerSide) {
-                        gameState.tournament.playerWins++;
-                    } else {
-                        gameState.tournament.opponentWins++;
-                    }
-                    
-                    // Check tournament winner
-                    if (gameState.tournament.playerWins >= gameState.tournament.winsNeeded ||
-                        gameState.tournament.opponentWins >= gameState.tournament.winsNeeded) {
-                        showTournamentResult();
-                        return;
-                    }
+                // Send game result in online mode
+                if (gameState.mode === 'online' && gameState.socket) {
+                    gameState.socket.emit('gameOver', {
+                        roomId: gameState.roomId,
+                        winner: winner
+                    });
                 }
                 
                 // Show win modal
@@ -1145,6 +1041,14 @@ html
                 gameState.gameActive = false;
                 gameState.scores.draw++;
                 updateScoreboard();
+                
+                // Send game result in online mode
+                if (gameState.mode === 'online' && gameState.socket) {
+                    gameState.socket.emit('gameOver', {
+                        roomId: gameState.roomId,
+                        winner: 'draw'
+                    });
+                }
                 
                 // Show draw modal
                 showGameOver('draw');
@@ -1171,39 +1075,6 @@ html
             }
             
             modal.classList.add('active');
-            
-            // Vibrate on mobile
-            if (tg.platform !== 'unknown') {
-                if (result === 'draw') {
-                    tg.HapticFeedback.impactOccurred('medium');
-                } else {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
-            }
-        }
-        
-        // Show tournament result
-        function showTournamentResult() {
-            const modal = document.getElementById('gameOverModal');
-            const title = document.getElementById('gameOverTitle');
-            const text = document.getElementById('gameOverText');
-            const icon = document.getElementById('gameOverIcon');
-            
-            if (gameState.tournament.playerWins > gameState.tournament.opponentWins) {
-                title.textContent = 'Турнир выигран!';
-                text.textContent = `Вы победили со счетом ${gameState.tournament.playerWins}:${gameState.tournament.opponentWins}!`;
-                icon.innerHTML = '<i class="fas fa-trophy"></i>';
-            } else {
-                title.textContent = 'Турнир проигран';
-                text.textContent = `Вы проиграли со счетом ${gameState.tournament.playerWins}:${gameState.tournament.opponentWins}`;
-                icon.innerHTML = '<i class="fas fa-times-circle"></i>';
-            }
-            
-            modal.classList.add('active');
-            
-            // Reset tournament
-            gameState.tournament.playerWins = 0;
-            gameState.tournament.opponentWins = 0;
         }
         
         // Update player turn display
@@ -1248,9 +1119,9 @@ html
             updatePlayerTurn();
             
             // Send game start to opponent in online mode
-            if (gameState.mode === 'online' && gameState.conn) {
-                gameState.conn.send({
-                    type: 'newGame'
+            if (gameState.mode === 'online' && gameState.socket) {
+                gameState.socket.emit('newGame', {
+                    roomId: gameState.roomId
                 });
             }
             
@@ -1258,7 +1129,7 @@ html
             closeModal('gameOverModal');
         }
         
-        // Restart game (keep scores)
+        // Restart game
         function restartGame() {
             startNewGame();
         }
@@ -1283,31 +1154,71 @@ html
             startNewGame();
         }
         
-        // Start tournament
-        function startTournament() {
-            gameState.mode = 'tournament';
-            gameState.playerSide = 'X';
-            playerSideElement.textContent = gameState.playerSide;
-            playerOName.textContent = 'Оппонент';
-            gameState.tournament.playerWins = 0;
-            gameState.tournament.opponentWins = 0;
-            showGameBoard();
-            startNewGame();
-        }
-        
         // Bot move
         function makeBotMove() {
             if (!gameState.gameActive || gameState.currentPlayer === gameState.playerSide) {
                 return;
             }
             
-            // Simple bot logic
+            // Simple bot logic - try to win, then block, then random
             let availableCells = [];
             gameState.board.forEach((cell, index) => {
                 if (cell === '') availableCells.push(index);
             });
             
             if (availableCells.length > 0) {
+                // Try to find winning move
+                for (let i = 0; i < availableCells.length; i++) {
+                    const index = availableCells[i];
+                    gameState.board[index] = 'O';
+                    if (checkWin('O')) {
+                        setTimeout(() => {
+                            makeMove(index, 'O');
+                            checkGameResult();
+                        }, 500);
+                        gameState.board[index] = '';
+                        return;
+                    }
+                    gameState.board[index] = '';
+                }
+                
+                // Try to block player
+                for (let i = 0; i < availableCells.length; i++) {
+                    const index = availableCells[i];
+                    gameState.board[index] = 'X';
+                    if (checkWin('X')) {
+                        setTimeout(() => {
+                            makeMove(index, 'O');
+                            checkGameResult();
+                        }, 500);
+                        gameState.board[index] = '';
+                        return;
+                    }
+                    gameState.board[index] = '';
+                }
+                
+                // Take center if available
+                if (availableCells.includes(4)) {
+                    setTimeout(() => {
+                        makeMove(4, 'O');
+                        checkGameResult();
+                    }, 500);
+                    return;
+                }
+                
+                // Take corner
+                const corners = [0, 2, 6, 8];
+                const availableCorners = corners.filter(corner => availableCells.includes(corner));
+                if (availableCorners.length > 0) {
+                    const randomCorner = availableCorners[Math.floor(Math.random() * availableCorners.length)];
+                    setTimeout(() => {
+                        makeMove(randomCorner, 'O');
+                        checkGameResult();
+                    }, 500);
+                    return;
+                }
+                
+                // Random move
                 const randomIndex = Math.floor(Math.random() * availableCells.length);
                 setTimeout(() => {
                     makeMove(availableCells[randomIndex], 'O');
@@ -1316,145 +1227,212 @@ html
             }
         }
         
-        // Initialize PeerJS for online play
-        function initializePeer() {
-            if (gameState.peer) return;
+        // Check win for specific player
+        function checkWin(player) {
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
             
-            // Generate a random peer ID
-            const peerId = `ttt-${Math.random().toString(36).substr(2, 6)}`;
-            
-            // Create peer
-            gameState.peer = new Peer(peerId, {
-                debug: 1,
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:global.stun.twilio.com:3478' }
-                    ]
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState.board[a] === player && 
+                    gameState.board[b] === player && 
+                    gameState.board[c] === player) {
+                    return true;
                 }
-            });
-            
-            // Peer opened
-            gameState.peer.on('open', (id) => {
-                peerIdElement.textContent = id;
-                updateConnectionStatus('waiting', 'Ожидание подключения');
-            });
-            
-            // Incoming connection
-            gameState.peer.on('connection', (conn) => {
-                gameState.conn = conn;
-                setupConnection();
-            });
-            
-            // Peer error
-            gameState.peer.on('error', (err) => {
-                console.error('Peer error:', err);
-                updateConnectionStatus('error', 'Ошибка подключения');
-                tg.showAlert('Ошибка подключения: ' + err.message);
-            });
+            }
+            return false;
         }
         
-        // Setup connection events
-        function setupConnection() {
-            // Connection opened
-            gameState.conn.on('open', () => {
+        // Navigation functions
+        function showModeSelector() {
+            modeSelector.style.display = 'flex';
+            gameBoardContainer.style.display = 'none';
+            onlinePanel.style.display = 'none';
+            createRoomPanel.style.display = 'none';
+            statsPanel.style.display = 'grid';
+            gameState.mode = 'menu';
+            
+            // Disconnect from socket if in online mode
+            if (gameState.socket && gameState.inRoom) {
+                leaveRoom();
+            }
+        }
+        
+        function showGameBoard() {
+            modeSelector.style.display = 'none';
+            gameBoardContainer.style.display = 'flex';
+            onlinePanel.style.display = 'none';
+            createRoomPanel.style.display = 'none';
+            statsPanel.style.display = 'grid';
+        }
+        
+        function showOnlinePanel() {
+            modeSelector.style.display = 'none';
+            gameBoardContainer.style.display = 'none';
+            onlinePanel.style.display = 'flex';
+            createRoomPanel.style.display = 'none';
+            statsPanel.style.display = 'none';
+            
+            // Initialize socket connection
+            initializeSocket();
+        }
+        
+        function showCreateRoomPanel() {
+            modeSelector.style.display = 'none';
+            gameBoardContainer.style.display = 'none';
+            onlinePanel.style.display = 'none';
+            createRoomPanel.style.display = 'flex';
+            statsPanel.style.display = 'none';
+        }
+        
+        // Initialize Socket.io connection
+        function initializeSocket() {
+            if (gameState.socket) {
                 updateConnectionStatus('connected', 'Подключено');
-                gameState.mode = 'online';
-                
-                // Send player info
-                gameState.conn.send({
-                    type: 'playerInfo',
-                    name: gameState.playerName,
-                    side: gameState.playerSide
-                });
-                
-                // Start game
-                showGameBoard();
-                startNewGame();
+                return;
+            }
+            
+            updateConnectionStatus('connecting', 'Подключение к серверу...');
+            updateGlobalStatus('connecting', 'Подключение...');
+            
+            // Connect to Socket.io server
+            gameState.socket = io(SOCKET_SERVER_URL, {
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
             });
             
-            // Incoming data
-            gameState.conn.on('data', (data) => {
-                handleIncomingData(data);
+            // Socket event handlers
+            gameState.socket.on('connect', () => {
+                console.log('Connected to server with ID:', gameState.socket.id);
+                gameState.playerId = gameState.socket.id.substring(0, 8);
+                playerIdElement.textContent = gameState.playerId;
+                updateConnectionStatus('connected', 'Подключено к серверу');
+                updateGlobalStatus('connected', 'Онлайн');
             });
             
-            // Connection closed
-            gameState.conn.on('close', () => {
-                updateConnectionStatus('disconnected', 'Соединение разорвано');
-                gameState.conn = null;
-                opponentNameElement.textContent = 'Не подключен';
+            gameState.socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+                updateConnectionStatus('error', 'Ошибка подключения');
+                updateGlobalStatus('error', 'Ошибка сети');
+                
+                // Fallback to local server if cloud server fails
+                setTimeout(() => {
+                    if (!gameState.socket.connected) {
+                        alert('Не удалось подключиться к серверу. Используйте режим "С другом" или "С ботом".');
+                        showModeSelector();
+                    }
+                }, 3000);
+            });
+            
+            gameState.socket.on('disconnect', () => {
+                updateConnectionStatus('disconnected', 'Отключено от сервера');
+                updateGlobalStatus('disconnected', 'Офлайн');
+            });
+            
+            // Room events
+            gameState.socket.on('roomCreated', (data) => {
+                gameState.roomId = data.roomId;
+                gameState.inRoom = true;
+                gameState.isRoomOwner = true;
+                
+                roomCodeElement.textContent = data.roomCode;
+                roomStatusElement.textContent = 'Ожидание игрока...';
+                roomPlayersElement.textContent = '1/2';
+                
+                // Generate invite link
+                const inviteLink = `${window.location.origin}${window.location.pathname}?room=${data.roomCode}`;
+                inviteLinkText.textContent = inviteLink;
+                
+                showCreateRoomPanel();
+            });
+            
+            gameState.socket.on('playerJoined', (data) => {
+                gameState.opponentName = data.playerName;
+                opponentNameElement.textContent = data.playerName;
+                playerOName.textContent = data.playerName;
+                roomStatusElement.textContent = 'Игрок присоединился!';
+                roomPlayersElement.textContent = '2/2';
+                
+                // Set player sides (owner is X, joiner is O)
+                if (gameState.isRoomOwner) {
+                    gameState.playerSide = 'X';
+                    gameState.opponentName = data.playerName;
+                } else {
+                    gameState.playerSide = 'O';
+                    gameState.opponentName = data.roomOwner;
+                }
+                playerSideElement.textContent = gameState.playerSide;
+                
+                // Start the game after 1 second
+                setTimeout(() => {
+                    showGameBoard();
+                    startNewGame();
+                }, 1000);
+            });
+            
+            gameState.socket.on('playerLeft', (data) => {
+                gameState.inRoom = false;
+                gameState.roomId = null;
                 
                 if (gameState.mode === 'online') {
-                    tg.showAlert('Соединение с оппонентом разорвано');
+                    alert('Оппонент покинул игру.');
                     showOnlinePanel();
                 }
             });
             
-            // Connection error
-            gameState.conn.on('error', (err) => {
-                console.error('Connection error:', err);
-                updateConnectionStatus('error', 'Ошибка соединения');
-                tg.showAlert('Ошибка соединения: ' + err.message);
+            gameState.socket.on('roomNotFound', () => {
+                alert('Комната не найдена. Проверьте код комнаты.');
+            });
+            
+            gameState.socket.on('roomFull', () => {
+                alert('Комната заполнена. Максимум 2 игрока.');
+            });
+            
+            // Game events
+            gameState.socket.on('moveMade', (data) => {
+                if (gameState.mode === 'online' && gameState.gameActive) {
+                    makeMove(data.index, data.player);
+                    checkGameResult();
+                }
+            });
+            
+            gameState.socket.on('newGame', () => {
+                if (gameState.mode === 'online') {
+                    startNewGame();
+                }
+            });
+            
+            gameState.socket.on('gameOver', (data) => {
+                if (gameState.mode === 'online') {
+                    showGameOver(data.winner);
+                }
+            });
+            
+            // Quick play events
+            gameState.socket.on('matchFound', (data) => {
+                gameState.roomId = data.roomId;
+                gameState.inRoom = true;
+                gameState.isRoomOwner = data.isOwner;
+                gameState.opponentName = data.opponentName;
+                
+                opponentNameElement.textContent = data.opponentName;
+                playerOName.textContent = data.opponentName;
+                
+                // Set player sides
+                gameState.playerSide = data.isOwner ? 'X' : 'O';
+                playerSideElement.textContent = gameState.playerSide;
+                
+                showGameBoard();
+                startNewGame();
             });
         }
         
-        // Handle incoming data
-        function handleIncomingData(data) {
-            switch (data.type) {
-                case 'move':
-                    makeMove(data.index, data.player);
-                    checkGameResult();
-                    break;
-                    
-                case 'newGame':
-                    startNewGame();
-                    break;
-                    
-                case 'playerInfo':
-                    gameState.opponentName = data.name;
-                    opponentNameElement.textContent = data.name;
-                    playerOName.textContent = data.name;
-                    
-                    // If opponent has different side, switch
-                    if (data.side === gameState.playerSide) {
-                        gameState.playerSide = gameState.playerSide === 'X' ? 'O' : 'X';
-                        playerSideElement.textContent = gameState.playerSide;
-                    }
-                    break;
-            }
-        }
-        
-        // Connect to another peer
-        function connectToPeer(peerId) {
-            if (!peerId || peerId === gameState.peer.id) {
-                tg.showAlert('Введите корректный ID оппонента');
-                return;
-            }
-            
-            updateConnectionStatus('connecting', 'Подключение...');
-            
-            // Close existing connection
-            if (gameState.conn) {
-                gameState.conn.close();
-            }
-            
-            // Create new connection
-            gameState.conn = gameState.peer.connect(peerId);
-            setupConnection();
-        }
-        
-        // Disconnect from peer
-        function disconnectFromPeer() {
-            if (gameState.conn) {
-                gameState.conn.close();
-                gameState.conn = null;
-            }
-            updateConnectionStatus('disconnected', 'Не подключено');
-            opponentNameElement.textContent = 'Не подключен';
-            showOnlinePanel();
-        }
-        
-        // Update connection status UI
+        // Update connection status
         function updateConnectionStatus(status, text) {
             statusText.textContent = text;
             statusIndicator.className = 'status-indicator';
@@ -1464,10 +1442,7 @@ html
                     statusIndicator.classList.add('connected');
                     break;
                 case 'connecting':
-                    statusIndicator.classList.add('searching');
-                    break;
-                case 'waiting':
-                    statusIndicator.style.backgroundColor = 'var(--warning)';
+                    statusIndicator.classList.add('connecting');
                     break;
                 case 'error':
                     statusIndicator.style.backgroundColor = 'var(--danger)';
@@ -1477,36 +1452,94 @@ html
             }
         }
         
-        // Create room for online play
-        function createRoom() {
-            initializePeer();
-            gameState.roomId = gameState.peer.id;
-            roomIdElement.textContent = gameState.roomId;
-            roomStatusElement.textContent = 'Ожидание игрока...';
-            showInvitePanel();
+        // Update global status
+        function updateGlobalStatus(status, text) {
+            globalStatusText.textContent = text;
+            globalStatusIndicator.className = 'status-indicator';
+            
+            switch (status) {
+                case 'connected':
+                    globalStatusIndicator.classList.add('connected');
+                    break;
+                case 'connecting':
+                    globalStatusIndicator.classList.add('connecting');
+                    break;
+                case 'error':
+                    globalStatusIndicator.style.backgroundColor = 'var(--danger)';
+                    break;
+                default:
+                    globalStatusIndicator.style.backgroundColor = 'var(--danger)';
+            }
         }
         
-        // Share invite via Telegram
-        function shareInvite() {
-            const shareText = `Привет! Сыграй со мной в крестики-нолики! ID комнаты: ${gameState.roomId}`;
-            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+        // Create room
+        function createRoom() {
+            if (!gameState.socket || !gameState.socket.connected) {
+                alert('Нет подключения к серверу. Попробуйте снова.');
+                return;
+            }
             
-            tg.openLink(shareUrl);
+            gameState.playerName = generatePlayerName();
+            gameState.socket.emit('createRoom', {
+                playerName: gameState.playerName,
+                playerId: gameState.playerId
+            });
+        }
+        
+        // Join room by code
+        function joinRoom(code) {
+            if (!gameState.socket || !gameState.socket.connected) {
+                alert('Нет подключения к серверу. Попробуйте снова.');
+                return;
+            }
+            
+            const roomCode = code.toUpperCase();
+            if (roomCode.length !== 6) {
+                alert('Код комнаты должен состоять из 6 символов.');
+                return;
+            }
+            
+            gameState.playerName = generatePlayerName();
+            gameState.socket.emit('joinRoom', {
+                roomCode: roomCode,
+                playerName: gameState.playerName,
+                playerId: gameState.playerId
+            });
+        }
+        
+        // Quick play
+        function quickPlay() {
+            if (!gameState.socket || !gameState.socket.connected) {
+                alert('Нет подключения к серверу. Попробуйте снова.');
+                return;
+            }
+            
+            gameState.playerName = generatePlayerName();
+            gameState.socket.emit('quickPlay', {
+                playerName: gameState.playerName,
+                playerId: gameState.playerId
+            });
+            
+            updateConnectionStatus('connecting', 'Поиск соперника...');
+        }
+        
+        // Leave room
+        function leaveRoom() {
+            if (gameState.socket && gameState.inRoom) {
+                gameState.socket.emit('leaveRoom', {
+                    roomId: gameState.roomId
+                });
+                gameState.inRoom = false;
+                gameState.roomId = null;
+                gameState.isRoomOwner = false;
+            }
         }
         
         // Copy invite link
         function copyInviteLink() {
-            const inviteText = `ID комнаты: ${gameState.roomId}\nПрисоединяйся к игре!`;
-            navigator.clipboard.writeText(inviteText).then(() => {
-                tg.showAlert('ID комнаты скопирован в буфер обмена!');
-            });
-        }
-        
-        // Copy peer ID to clipboard
-        function copyPeerId() {
-            const id = peerIdElement.textContent;
-            navigator.clipboard.writeText(id).then(() => {
-                tg.showAlert('ID скопирован в буфер обмена! Отправьте его другу.');
+            const link = inviteLinkText.textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Ссылка скопирована в буфер обмена! Отправьте её другу.');
             });
         }
         
@@ -1520,53 +1553,62 @@ html
             document.getElementById(modalId).classList.remove('active');
         }
         
-        // Show instructions
-        function showInstructions() {
-            showModal('instructionsModal');
+        // Check for room code in URL
+        function checkUrlForRoomCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomCode = urlParams.get('room');
+            
+            if (roomCode && roomCode.length === 6) {
+                // Auto-join room if code is in URL
+                showOnlinePanel();
+                setTimeout(() => {
+                    joinRoom(roomCode);
+                }, 1000);
+            }
         }
         
         // Initialize everything
         function initialize() {
-            // Initialize Telegram
-            initTelegram();
-            
             // Initialize game board
             initializeBoard();
             
             // Set initial scores
             updateScoreboard();
             
+            // Generate player name
+            gameState.playerName = generatePlayerName();
+            playerXName.textContent = gameState.playerName;
+            
+            // Check for room code in URL
+            checkUrlForRoomCode();
+            
             // Event listeners
             document.getElementById('localGameBtn').addEventListener('click', startLocalGame);
-            document.getElementById('onlineGameBtn').addEventListener('click', () => {
-                initializePeer();
-                showOnlinePanel();
-            });
+            document.getElementById('onlineGameBtn').addEventListener('click', showOnlinePanel);
             document.getElementById('vsBotBtn').addEventListener('click', startBotGame);
-            document.getElementById('tournamentBtn').addEventListener('click', startTournament);
+            document.getElementById('howToPlayBtn').addEventListener('click', () => showModal('howToPlayModal'));
             
             document.getElementById('backToMenuBtn').addEventListener('click', showModeSelector);
             document.getElementById('restartGameBtn').addEventListener('click', restartGame);
             document.getElementById('newGameBtn').addEventListener('click', startNewGame);
             
             document.getElementById('createRoomBtn').addEventListener('click', createRoom);
-            document.getElementById('joinRoomBtn').addEventListener('click', () => showModal('inviteModal'));
-            document.getElementById('copyIdBtn').addEventListener('click', copyPeerId);
-            document.getElementById('disconnectBtn').addEventListener('click', disconnectFromPeer);
+            document.getElementById('joinRoomBtn').addEventListener('click', () => showModal('joinRoomModal'));
+            document.getElementById('quickPlayBtn').addEventListener('click', quickPlay);
+            document.getElementById('disconnectBtn').addEventListener('click', showModeSelector);
             
-            document.getElementById('shareInviteBtn').addEventListener('click', shareInvite);
             document.getElementById('copyInviteBtn').addEventListener('click', copyInviteLink);
-            document.getElementById('cancelInviteBtn').addEventListener('click', showOnlinePanel);
+            document.getElementById('cancelRoomBtn').addEventListener('click', showOnlinePanel);
             
-            document.getElementById('joinByIdBtn').addEventListener('click', () => {
-                const roomId = document.getElementById('roomIdInput').value.trim();
-                if (roomId) {
-                    connectToPeer(roomId);
-                    closeModal('inviteModal');
+            document.getElementById('joinRoomByIdBtn').addEventListener('click', () => {
+                const roomCode = document.getElementById('roomCodeInput').value.trim();
+                if (roomCode) {
+                    joinRoom(roomCode);
+                    closeModal('joinRoomModal');
                 }
             });
             
-            document.getElementById('cancelJoinBtn').addEventListener('click', () => closeModal('inviteModal'));
+            document.getElementById('cancelJoinBtn').addEventListener('click', () => closeModal('joinRoomModal'));
             
             document.getElementById('playAgainBtn').addEventListener('click', () => {
                 startNewGame();
@@ -1578,17 +1620,7 @@ html
                 closeModal('gameOverModal');
             });
             
-            // Instructions button in header (simulated)
-            setTimeout(() => {
-                // Add instructions button to header
-                const instructionsBtn = document.createElement('div');
-                instructionsBtn.innerHTML = '<i class="fas fa-question-circle"></i>';
-                instructionsBtn.style.cssText = 'font-size: 20px; cursor: pointer; opacity: 0.7;';
-                instructionsBtn.addEventListener('click', showInstructions);
-                document.querySelector('.header').appendChild(instructionsBtn);
-            }, 1000);
-            
-            // Initialize bot game logic
+            // Bot game logic
             setInterval(() => {
                 if (gameState.mode === 'bot' && gameState.gameActive && 
                     gameState.currentPlayer !== gameState.playerSide) {
@@ -1596,19 +1628,18 @@ html
                 }
             }, 1000);
             
-            console.log('Game initialized for Telegram');
+            console.log('Game initialized with online mode');
         }
         
-        // Start everything when page loads
+        // Start when page loads
         window.addEventListener('DOMContentLoaded', initialize);
         
-        // Handle beforeunload for online mode
+        // Clean up on page unload
         window.addEventListener('beforeunload', () => {
-            if (gameState.conn) {
-                gameState.conn.close();
+            if (gameState.socket) {
+                gameState.socket.disconnect();
             }
         });
     </script>
 </body>
-
 </html>
