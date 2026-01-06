@@ -1,0 +1,1612 @@
+html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe • Telegram Game</title>
+    <meta name="telegram:viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --tg-theme-bg-color: #17212b;
+            --tg-theme-text-color: #ffffff;
+            --tg-theme-hint-color: #708499;
+            --tg-theme-link-color: #6ab3f3;
+            --tg-theme-button-color: #5288c1;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #232e3c;
+            --primary: #3390ec;
+            --primary-dark: #2a7bc8;
+            --secondary: #eb5569;
+            --secondary-dark: #d44456;
+            --accent: #7b61ff;
+            --success: #31b545;
+            --warning: #ffb800;
+            --danger: #ff3b30;
+            --border-radius: 16px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
+            background: var(--tg-theme-bg-color, #17212b);
+            color: var(--tg-theme-text-color, #ffffff);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .app-container {
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Header */
+        .header {
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        /* Game Mode Selector */
+        .mode-selector {
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .mode-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .mode-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        /* Game Board */
+        .game-board-container {
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 10px;
+        }
+        
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            min-width: 140px;
+        }
+        
+        .player-card.active {
+            background: rgba(51, 144, 236, 0.15);
+            border: 1px solid rgba(51, 144, 236, 0.3);
+        }
+        
+        .player-symbol {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .player-x .player-symbol {
+            background: rgba(51, 144, 236, 0.2);
+            color: var(--primary);
+        }
+        
+        .player-o .player-symbol {
+            background: rgba(235, 85, 105, 0.2);
+            color: var(--secondary);
+        }
+        
+        .player-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .player-status {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .vs-text {
+            font-weight: 700;
+            color: var(--tg-theme-hint-color);
+            padding: 0 10px;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 12px;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+        
+        .cell:active:not(.occupied) {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .cell.occupied {
+            cursor: default;
+        }
+        
+        .cell.x {
+            color: var(--primary);
+            text-shadow: 0 4px 12px rgba(51, 144, 236, 0.3);
+        }
+        
+        .cell.o {
+            color: var(--secondary);
+            text-shadow: 0 4px 12px rgba(235, 85, 105, 0.3);
+        }
+        
+        .cell.winner {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, 
+                rgba(51, 144, 236, 0.15), 
+                rgba(235, 85, 105, 0.15));
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(51, 144, 236, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(51, 144, 236, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(51, 144, 236, 0); }
+        }
+        
+        /* Game Controls */
+        .game-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        
+        /* Stats Panel */
+        .stats-panel {
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-x .stat-value {
+            color: var(--primary);
+        }
+        
+        .stat-o .stat-value {
+            color: var(--secondary);
+        }
+        
+        .stat-draw .stat-value {
+            color: var(--tg-theme-hint-color);
+        }
+        
+        /* Online Panel */
+        .online-panel {
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .online-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .online-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(123, 97, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 20px;
+        }
+        
+        .online-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--danger);
+        }
+        
+        .status-indicator.connected {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+        
+        .status-indicator.searching {
+            background: var(--warning);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-text {
+            font-size: 14px;
+        }
+        
+        .online-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        #peerId {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 10px;
+            border-radius: 6px;
+            word-break: break-all;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .online-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary {
+            background: var(--tg-theme-button-color, var(--primary));
+            color: var(--tg-theme-button-text-color, white);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--tg-theme-text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--tg-theme-text-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-sm {
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            padding: 20px;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+            border-radius: var(--border-radius);
+            padding: 32px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .modal-text {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.5;
+            text-align: center;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.6;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 16px;
+                gap: 16px;
+            }
+            
+            .game-board {
+                max-width: 280px;
+                grid-gap: 10px;
+            }
+            
+            .cell {
+                font-size: 40px;
+            }
+            
+            .player-card {
+                min-width: 120px;
+                padding: 10px 16px;
+            }
+            
+            .mode-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .online-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+        
+        /* Telegram specific styles */
+        .tg-button {
+            background: var(--tg-theme-button-color, var(--primary));
+            color: var(--tg-theme-button-text-color, white);
+        }
+        
+        .tg-secondary {
+            background: var(--tg-theme-secondary-bg-color, #232e3c);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="appContainer">
+        <!-- Header with Telegram user info -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <div class="logo-text">Tic-Tac-Toe</div>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-name" id="userName">User</div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Game Mode Selector (shown initially) -->
+            <section class="mode-selector fade-in" id="modeSelector">
+                <div class="mode-title">Выберите режим игры</div>
+                <div class="mode-buttons">
+                    <button class="btn btn-primary" id="localGameBtn">
+                        <i class="fas fa-user-friends"></i> С другом
+                    </button>
+                    <button class="btn btn-accent" id="onlineGameBtn">
+                        <i class="fas fa-wifi"></i> Онлайн
+                    </button>
+                    <button class="btn btn-secondary" id="vsBotBtn">
+                        <i class="fas fa-robot"></i> С ботом
+                    </button>
+                    <button class="btn btn-outline" id="tournamentBtn">
+                        <i class="fas fa-trophy"></i> Турнир
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Game Board (hidden initially) -->
+            <section class="game-board-container fade-in" id="gameBoardContainer" style="display: none;">
+                <div class="game-info">
+                    <div class="player-card player-x" id="playerXCard">
+                        <div class="player-symbol">X</div>
+                        <div>
+                            <div class="player-name" id="playerXName">Вы</div>
+                            <div class="player-status" id="playerXStatus">Ваш ход</div>
+                        </div>
+                    </div>
+                    
+                    <div class="vs-text">VS</div>
+                    
+                    <div class="player-card player-o" id="playerOCard">
+                        <div class="player-symbol">O</div>
+                        <div>
+                            <div class="player-name" id="playerOName">Оппонент</div>
+                            <div class="player-status" id="playerOStatus">Ожидание</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-board" id="gameBoard">
+                    <!-- Cells will be generated by JavaScript -->
+                </div>
+                
+                <div class="game-controls">
+                    <button class="btn btn-secondary btn-sm" id="backToMenuBtn">
+                        <i class="fas fa-arrow-left"></i> Меню
+                    </button>
+                    <button class="btn btn-outline btn-sm" id="restartGameBtn">
+                        <i class="fas fa-redo"></i> Заново
+                    </button>
+                    <button class="btn btn-primary btn-sm" id="newGameBtn">
+                        <i class="fas fa-plus"></i> Новая
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Stats Panel -->
+            <section class="stats-panel fade-in" id="statsPanel">
+                <div class="stat-item stat-x">
+                    <div class="stat-value" id="scoreX">0</div>
+                    <div class="stat-label">Побед X</div>
+                </div>
+                <div class="stat-item stat-draw">
+                    <div class="stat-value" id="scoreDraw">0</div>
+                    <div class="stat-label">Ничьих</div>
+                </div>
+                <div class="stat-item stat-o">
+                    <div class="stat-value" id="scoreO">0</div>
+                    <div class="stat-label">Побед O</div>
+                </div>
+            </section>
+            
+            <!-- Online Panel (hidden initially) -->
+            <section class="online-panel fade-in" id="onlinePanel" style="display: none;">
+                <div class="online-header">
+                    <div class="online-icon">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="online-title">Онлайн игра</div>
+                </div>
+                
+                <div class="connection-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <div class="status-text" id="statusText">Не подключено</div>
+                </div>
+                
+                <div class="online-info">
+                    <div class="info-row">
+                        <div class="info-label">Ваш ID:</div>
+                        <div class="info-value" id="peerId">Загрузка...</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Оппонент:</div>
+                        <div class="info-value" id="opponentName">Не подключен</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Сторона:</div>
+                        <div class="info-value" id="playerSide">X</div>
+                    </div>
+                </div>
+                
+                <div class="online-controls">
+                    <button class="btn btn-primary" id="createRoomBtn">
+                        <i class="fas fa-plus-circle"></i> Создать комнату
+                    </button>
+                    <button class="btn btn-accent" id="joinRoomBtn">
+                        <i class="fas fa-sign-in-alt"></i> Присоединиться
+                    </button>
+                    <button class="btn btn-success" id="copyIdBtn">
+                        <i class="fas fa-copy"></i> Копировать ID
+                    </button>
+                    <button class="btn btn-danger" id="disconnectBtn">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Invite Friends Panel (hidden initially) -->
+            <section class="online-panel fade-in" id="invitePanel" style="display: none;">
+                <div class="online-header">
+                    <div class="online-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="online-title">Пригласить друга</div>
+                </div>
+                
+                <div class="online-info">
+                    <div class="info-row">
+                        <div class="info-label">ID комнаты:</div>
+                        <div class="info-value" id="roomId">XXXXXX</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Статус:</div>
+                        <div class="info-value" id="roomStatus">Ожидание игрока...</div>
+                    </div>
+                </div>
+                
+                <div class="online-controls">
+                    <button class="btn btn-primary btn-full" id="shareInviteBtn">
+                        <i class="fab fa-telegram"></i> Поделиться в Telegram
+                    </button>
+                    <button class="btn btn-secondary" id="copyInviteBtn">
+                        <i class="fas fa-copy"></i> Копировать ссылку
+                    </button>
+                    <button class="btn btn-outline" id="cancelInviteBtn">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div>Игра работает в Telegram • Использует WebRTC для онлайн-игры</div>
+        </footer>
+    </div>
+    
+    <!-- Game Over Modal -->
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon" id="gameOverIcon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h2 class="modal-title" id="gameOverTitle">Победа!</h2>
+                <p class="modal-text" id="gameOverText">Игрок X победил в этой партии!</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-primary" id="playAgainBtn">Играть снова</button>
+                    <button class="btn btn-outline" id="backToMenuModalBtn">Вернуться в меню</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invite Modal -->
+    <div class="modal" id="inviteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2 class="modal-title">Присоединиться к игре</h2>
+                <p class="modal-text">Введите ID комнаты, чтобы присоединиться к игре:</p>
+                <input type="text" id="roomIdInput" placeholder="Введите ID комнаты" 
+                       style="width: 100%; padding: 16px; margin: 20px 0; border-radius: 12px; 
+                              background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+                              color: white; font-size: 16px;">
+                <div class="modal-buttons">
+                    <button class="btn btn-primary" id="joinByIdBtn">Присоединиться</button>
+                    <button class="btn btn-outline" id="cancelJoinBtn">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Instructions Modal -->
+    <div class="modal" id="instructionsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Как играть?</h2>
+                <p class="modal-text" style="text-align: left;">
+                    <strong>Цель игры:</strong> Первым выстроить 3 своих символа в ряд (по горизонтали, вертикали или диагонали).<br><br>
+                    
+                    <strong>Режимы игры:</strong><br>
+                    1. <strong>С другом</strong> - играйте на одном устройстве<br>
+                    2. <strong>Онлайн</strong> - играйте с другом через интернет<br>
+                    3. <strong>С ботом</strong> - играйте против компьютера<br>
+                    4. <strong>Турнир</strong> - серия игр до 3 побед<br><br>
+                    
+                    <strong>Управление:</strong> Нажимайте на клетки, чтобы сделать ход.<br><br>
+                    
+                    <strong>Онлайн игра:</strong> Создайте комнату и поделитесь ID с другом, или введите ID комнаты друга.
+                </p>
+                <div class="modal-buttons">
+                    <button class="btn btn-primary" onclick="closeModal('instructionsModal')">Понятно!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- PeerJS Library for P2P connections -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram.WebApp;
+        
+        // Game State
+        let gameState = {
+            mode: 'menu', // 'menu', 'local', 'online', 'bot', 'tournament'
+            board: ['', '', '', '', '', '', '', '', ''],
+            currentPlayer: 'X',
+            gameActive: false,
+            scores: { X: 0, O: 0, draw: 0 },
+            playerSide: 'X',
+            playerName: 'Игрок',
+            opponentName: 'Оппонент',
+            connection: null,
+            peer: null,
+            conn: null,
+            roomId: null,
+            tournament: { winsNeeded: 3, playerWins: 0, opponentWins: 0 }
+        };
+        
+        // DOM Elements
+        const appContainer = document.getElementById('appContainer');
+        const modeSelector = document.getElementById('modeSelector');
+        const gameBoardContainer = document.getElementById('gameBoardContainer');
+        const onlinePanel = document.getElementById('onlinePanel');
+        const invitePanel = document.getElementById('invitePanel');
+        const statsPanel = document.getElementById('statsPanel');
+        const gameBoard = document.getElementById('gameBoard');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const playerXName = document.getElementById('playerXName');
+        const playerOName = document.getElementById('playerOName');
+        const playerXStatus = document.getElementById('playerXStatus');
+        const playerOStatus = document.getElementById('playerOStatus');
+        const playerXCard = document.getElementById('playerXCard');
+        const playerOCard = document.getElementById('playerOCard');
+        const scoreX = document.getElementById('scoreX');
+        const scoreO = document.getElementById('scoreO');
+        const scoreDraw = document.getElementById('scoreDraw');
+        const peerIdElement = document.getElementById('peerId');
+        const opponentNameElement = document.getElementById('opponentName');
+        const playerSideElement = document.getElementById('playerSide');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const roomIdElement = document.getElementById('roomId');
+        const roomStatusElement = document.getElementById('roomStatus');
+        
+        // Initialize Telegram Web App
+        function initTelegram() {
+            // Expand the app to full height
+            tg.expand();
+            
+            // Set theme params
+            applyTheme();
+            
+            // Set user info
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                gameState.playerName = user.first_name || 'Игрок';
+                if (user.last_name) gameState.playerName += ' ' + user.last_name;
+                userName.textContent = gameState.playerName;
+                
+                // Set avatar
+                if (user.username) {
+                    userAvatar.textContent = user.username.charAt(0).toUpperCase();
+                } else {
+                    userAvatar.textContent = gameState.playerName.charAt(0).toUpperCase();
+                }
+                
+                // Set player names
+                playerXName.textContent = gameState.playerName;
+            }
+            
+            // Set back button behavior
+            tg.BackButton.onClick(goBack);
+            
+            // Handle theme changes
+            tg.onEvent('themeChanged', applyTheme);
+            
+            // Handle viewport changes
+            tg.onEvent('viewportChanged', () => {
+                tg.expand();
+            });
+            
+            console.log('Telegram Web App initialized');
+        }
+        
+        // Apply Telegram theme
+        function applyTheme() {
+            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#17212b');
+            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#708499');
+            document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#6ab3f3');
+            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#5288c1');
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#232e3c');
+        }
+        
+        // Navigation functions
+        function goBack() {
+            if (gameState.mode === 'online' && gameState.conn) {
+                disconnectFromPeer();
+            }
+            
+            showModeSelector();
+            tg.BackButton.hide();
+        }
+        
+        function showModeSelector() {
+            modeSelector.style.display = 'flex';
+            gameBoardContainer.style.display = 'none';
+            onlinePanel.style.display = 'none';
+            invitePanel.style.display = 'none';
+            statsPanel.style.display = 'grid';
+            gameState.mode = 'menu';
+        }
+        
+        function showGameBoard() {
+            modeSelector.style.display = 'none';
+            gameBoardContainer.style.display = 'flex';
+            onlinePanel.style.display = 'none';
+            invitePanel.style.display = 'none';
+            statsPanel.style.display = 'grid';
+            tg.BackButton.show();
+        }
+        
+        function showOnlinePanel() {
+            modeSelector.style.display = 'none';
+            gameBoardContainer.style.display = 'none';
+            onlinePanel.style.display = 'flex';
+            invitePanel.style.display = 'none';
+            statsPanel.style.display = 'none';
+            tg.BackButton.show();
+        }
+        
+        function showInvitePanel() {
+            modeSelector.style.display = 'none';
+            gameBoardContainer.style.display = 'none';
+            onlinePanel.style.display = 'none';
+            invitePanel.style.display = 'flex';
+            statsPanel.style.display = 'none';
+            tg.BackButton.show();
+        }
+        
+        // Initialize game board
+        function initializeBoard() {
+            gameBoard.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', () => handleCellClick(i));
+                gameBoard.appendChild(cell);
+            }
+        }
+        
+        // Handle cell click
+        function handleCellClick(index) {
+            if (!gameState.gameActive || gameState.board[index] !== '') {
+                return;
+            }
+            
+            // Check if it's player's turn in online mode
+            if (gameState.mode === 'online' && gameState.conn && 
+                gameState.currentPlayer !== gameState.playerSide) {
+                return;
+            }
+            
+            // Make move
+            makeMove(index, gameState.currentPlayer);
+            
+            // Send move to opponent in online mode
+            if (gameState.mode === 'online' && gameState.conn) {
+                gameState.conn.send({
+                    type: 'move',
+                    index: index,
+                    player: gameState.currentPlayer
+                });
+            }
+            
+            // Check for win or draw
+            checkGameResult();
+        }
+        
+        // Make a move
+        function makeMove(index, player) {
+            gameState.board[index] = player;
+            const cell = document.querySelector(`.cell[data-index="${index}"]`);
+            cell.textContent = player;
+            cell.classList.add('occupied', player.toLowerCase());
+            
+            // Switch player
+            gameState.currentPlayer = player === 'X' ? 'O' : 'X';
+            updatePlayerTurn();
+            
+            // Vibrate on mobile
+            if (tg.platform !== 'unknown') {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+        
+        // Check game result
+        function checkGameResult() {
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6] // Diagonals
+            ];
+            
+            let roundWon = false;
+            let winner = null;
+            
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState.board[a] && 
+                    gameState.board[a] === gameState.board[b] && 
+                    gameState.board[a] === gameState.board[c]) {
+                    roundWon = true;
+                    winner = gameState.board[a];
+                    
+                    // Highlight winning cells
+                    document.querySelector(`.cell[data-index="${a}"]`).classList.add('winner');
+                    document.querySelector(`.cell[data-index="${b}"]`).classList.add('winner');
+                    document.querySelector(`.cell[data-index="${c}"]`).classList.add('winner');
+                    break;
+                }
+            }
+            
+            // Check for win
+            if (roundWon) {
+                gameState.gameActive = false;
+                gameState.scores[winner]++;
+                updateScoreboard();
+                
+                // Handle tournament mode
+                if (gameState.mode === 'tournament') {
+                    if (winner === gameState.playerSide) {
+                        gameState.tournament.playerWins++;
+                    } else {
+                        gameState.tournament.opponentWins++;
+                    }
+                    
+                    // Check tournament winner
+                    if (gameState.tournament.playerWins >= gameState.tournament.winsNeeded ||
+                        gameState.tournament.opponentWins >= gameState.tournament.winsNeeded) {
+                        showTournamentResult();
+                        return;
+                    }
+                }
+                
+                // Show win modal
+                showGameOver(winner);
+                return;
+            }
+            
+            // Check for draw
+            if (!gameState.board.includes('')) {
+                gameState.gameActive = false;
+                gameState.scores.draw++;
+                updateScoreboard();
+                
+                // Show draw modal
+                showGameOver('draw');
+            }
+        }
+        
+        // Show game over modal
+        function showGameOver(result) {
+            const modal = document.getElementById('gameOverModal');
+            const title = document.getElementById('gameOverTitle');
+            const text = document.getElementById('gameOverText');
+            const icon = document.getElementById('gameOverIcon');
+            
+            if (result === 'draw') {
+                title.textContent = 'Ничья!';
+                text.textContent = 'Все клетки заполнены. Победила дружба!';
+                icon.innerHTML = '<i class="fas fa-handshake"></i>';
+            } else {
+                title.textContent = 'Победа!';
+                text.textContent = `Игрок ${result} победил в этой партии!`;
+                icon.innerHTML = result === 'X' ? 
+                    '<i class="fas fa-times"></i>' : 
+                    '<i class="far fa-circle"></i>';
+            }
+            
+            modal.classList.add('active');
+            
+            // Vibrate on mobile
+            if (tg.platform !== 'unknown') {
+                if (result === 'draw') {
+                    tg.HapticFeedback.impactOccurred('medium');
+                } else {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+            }
+        }
+        
+        // Show tournament result
+        function showTournamentResult() {
+            const modal = document.getElementById('gameOverModal');
+            const title = document.getElementById('gameOverTitle');
+            const text = document.getElementById('gameOverText');
+            const icon = document.getElementById('gameOverIcon');
+            
+            if (gameState.tournament.playerWins > gameState.tournament.opponentWins) {
+                title.textContent = 'Турнир выигран!';
+                text.textContent = `Вы победили со счетом ${gameState.tournament.playerWins}:${gameState.tournament.opponentWins}!`;
+                icon.innerHTML = '<i class="fas fa-trophy"></i>';
+            } else {
+                title.textContent = 'Турнир проигран';
+                text.textContent = `Вы проиграли со счетом ${gameState.tournament.playerWins}:${gameState.tournament.opponentWins}`;
+                icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+            }
+            
+            modal.classList.add('active');
+            
+            // Reset tournament
+            gameState.tournament.playerWins = 0;
+            gameState.tournament.opponentWins = 0;
+        }
+        
+        // Update player turn display
+        function updatePlayerTurn() {
+            if (gameState.currentPlayer === 'X') {
+                playerXCard.classList.add('active');
+                playerOCard.classList.remove('active');
+                playerXStatus.textContent = gameState.gameActive ? 
+                    (gameState.currentPlayer === gameState.playerSide ? 'Ваш ход' : 'Ход оппонента') : 
+                    'Игра завершена';
+                playerOStatus.textContent = 'Ожидание';
+            } else {
+                playerXCard.classList.remove('active');
+                playerOCard.classList.add('active');
+                playerOStatus.textContent = gameState.gameActive ? 
+                    (gameState.currentPlayer === gameState.playerSide ? 'Ваш ход' : 'Ход оппонента') : 
+                    'Игра завершена';
+                playerXStatus.textContent = 'Ожидание';
+            }
+        }
+        
+        // Update scoreboard
+        function updateScoreboard() {
+            scoreX.textContent = gameState.scores.X;
+            scoreO.textContent = gameState.scores.O;
+            scoreDraw.textContent = gameState.scores.draw;
+        }
+        
+        // Start new game
+        function startNewGame() {
+            gameState.board = ['', '', '', '', '', '', '', '', ''];
+            gameState.currentPlayer = 'X';
+            gameState.gameActive = true;
+            
+            // Reset board UI
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('occupied', 'x', 'o', 'winner');
+            });
+            
+            updatePlayerTurn();
+            
+            // Send game start to opponent in online mode
+            if (gameState.mode === 'online' && gameState.conn) {
+                gameState.conn.send({
+                    type: 'newGame'
+                });
+            }
+            
+            // Close modal if open
+            closeModal('gameOverModal');
+        }
+        
+        // Restart game (keep scores)
+        function restartGame() {
+            startNewGame();
+        }
+        
+        // Start local game
+        function startLocalGame() {
+            gameState.mode = 'local';
+            gameState.playerSide = 'X';
+            playerSideElement.textContent = gameState.playerSide;
+            playerOName.textContent = 'Друг';
+            showGameBoard();
+            startNewGame();
+        }
+        
+        // Start bot game
+        function startBotGame() {
+            gameState.mode = 'bot';
+            gameState.playerSide = 'X';
+            playerSideElement.textContent = gameState.playerSide;
+            playerOName.textContent = 'Бот';
+            showGameBoard();
+            startNewGame();
+        }
+        
+        // Start tournament
+        function startTournament() {
+            gameState.mode = 'tournament';
+            gameState.playerSide = 'X';
+            playerSideElement.textContent = gameState.playerSide;
+            playerOName.textContent = 'Оппонент';
+            gameState.tournament.playerWins = 0;
+            gameState.tournament.opponentWins = 0;
+            showGameBoard();
+            startNewGame();
+        }
+        
+        // Bot move
+        function makeBotMove() {
+            if (!gameState.gameActive || gameState.currentPlayer === gameState.playerSide) {
+                return;
+            }
+            
+            // Simple bot logic
+            let availableCells = [];
+            gameState.board.forEach((cell, index) => {
+                if (cell === '') availableCells.push(index);
+            });
+            
+            if (availableCells.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableCells.length);
+                setTimeout(() => {
+                    makeMove(availableCells[randomIndex], 'O');
+                    checkGameResult();
+                }, 500);
+            }
+        }
+        
+        // Initialize PeerJS for online play
+        function initializePeer() {
+            if (gameState.peer) return;
+            
+            // Generate a random peer ID
+            const peerId = `ttt-${Math.random().toString(36).substr(2, 6)}`;
+            
+            // Create peer
+            gameState.peer = new Peer(peerId, {
+                debug: 1,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:global.stun.twilio.com:3478' }
+                    ]
+                }
+            });
+            
+            // Peer opened
+            gameState.peer.on('open', (id) => {
+                peerIdElement.textContent = id;
+                updateConnectionStatus('waiting', 'Ожидание подключения');
+            });
+            
+            // Incoming connection
+            gameState.peer.on('connection', (conn) => {
+                gameState.conn = conn;
+                setupConnection();
+            });
+            
+            // Peer error
+            gameState.peer.on('error', (err) => {
+                console.error('Peer error:', err);
+                updateConnectionStatus('error', 'Ошибка подключения');
+                tg.showAlert('Ошибка подключения: ' + err.message);
+            });
+        }
+        
+        // Setup connection events
+        function setupConnection() {
+            // Connection opened
+            gameState.conn.on('open', () => {
+                updateConnectionStatus('connected', 'Подключено');
+                gameState.mode = 'online';
+                
+                // Send player info
+                gameState.conn.send({
+                    type: 'playerInfo',
+                    name: gameState.playerName,
+                    side: gameState.playerSide
+                });
+                
+                // Start game
+                showGameBoard();
+                startNewGame();
+            });
+            
+            // Incoming data
+            gameState.conn.on('data', (data) => {
+                handleIncomingData(data);
+            });
+            
+            // Connection closed
+            gameState.conn.on('close', () => {
+                updateConnectionStatus('disconnected', 'Соединение разорвано');
+                gameState.conn = null;
+                opponentNameElement.textContent = 'Не подключен';
+                
+                if (gameState.mode === 'online') {
+                    tg.showAlert('Соединение с оппонентом разорвано');
+                    showOnlinePanel();
+                }
+            });
+            
+            // Connection error
+            gameState.conn.on('error', (err) => {
+                console.error('Connection error:', err);
+                updateConnectionStatus('error', 'Ошибка соединения');
+                tg.showAlert('Ошибка соединения: ' + err.message);
+            });
+        }
+        
+        // Handle incoming data
+        function handleIncomingData(data) {
+            switch (data.type) {
+                case 'move':
+                    makeMove(data.index, data.player);
+                    checkGameResult();
+                    break;
+                    
+                case 'newGame':
+                    startNewGame();
+                    break;
+                    
+                case 'playerInfo':
+                    gameState.opponentName = data.name;
+                    opponentNameElement.textContent = data.name;
+                    playerOName.textContent = data.name;
+                    
+                    // If opponent has different side, switch
+                    if (data.side === gameState.playerSide) {
+                        gameState.playerSide = gameState.playerSide === 'X' ? 'O' : 'X';
+                        playerSideElement.textContent = gameState.playerSide;
+                    }
+                    break;
+            }
+        }
+        
+        // Connect to another peer
+        function connectToPeer(peerId) {
+            if (!peerId || peerId === gameState.peer.id) {
+                tg.showAlert('Введите корректный ID оппонента');
+                return;
+            }
+            
+            updateConnectionStatus('connecting', 'Подключение...');
+            
+            // Close existing connection
+            if (gameState.conn) {
+                gameState.conn.close();
+            }
+            
+            // Create new connection
+            gameState.conn = gameState.peer.connect(peerId);
+            setupConnection();
+        }
+        
+        // Disconnect from peer
+        function disconnectFromPeer() {
+            if (gameState.conn) {
+                gameState.conn.close();
+                gameState.conn = null;
+            }
+            updateConnectionStatus('disconnected', 'Не подключено');
+            opponentNameElement.textContent = 'Не подключен';
+            showOnlinePanel();
+        }
+        
+        // Update connection status UI
+        function updateConnectionStatus(status, text) {
+            statusText.textContent = text;
+            statusIndicator.className = 'status-indicator';
+            
+            switch (status) {
+                case 'connected':
+                    statusIndicator.classList.add('connected');
+                    break;
+                case 'connecting':
+                    statusIndicator.classList.add('searching');
+                    break;
+                case 'waiting':
+                    statusIndicator.style.backgroundColor = 'var(--warning)';
+                    break;
+                case 'error':
+                    statusIndicator.style.backgroundColor = 'var(--danger)';
+                    break;
+                default:
+                    statusIndicator.style.backgroundColor = 'var(--danger)';
+            }
+        }
+        
+        // Create room for online play
+        function createRoom() {
+            initializePeer();
+            gameState.roomId = gameState.peer.id;
+            roomIdElement.textContent = gameState.roomId;
+            roomStatusElement.textContent = 'Ожидание игрока...';
+            showInvitePanel();
+        }
+        
+        // Share invite via Telegram
+        function shareInvite() {
+            const shareText = `Привет! Сыграй со мной в крестики-нолики! ID комнаты: ${gameState.roomId}`;
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+            
+            tg.openLink(shareUrl);
+        }
+        
+        // Copy invite link
+        function copyInviteLink() {
+            const inviteText = `ID комнаты: ${gameState.roomId}\nПрисоединяйся к игре!`;
+            navigator.clipboard.writeText(inviteText).then(() => {
+                tg.showAlert('ID комнаты скопирован в буфер обмена!');
+            });
+        }
+        
+        // Copy peer ID to clipboard
+        function copyPeerId() {
+            const id = peerIdElement.textContent;
+            navigator.clipboard.writeText(id).then(() => {
+                tg.showAlert('ID скопирован в буфер обмена! Отправьте его другу.');
+            });
+        }
+        
+        // Show modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+        
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        // Show instructions
+        function showInstructions() {
+            showModal('instructionsModal');
+        }
+        
+        // Initialize everything
+        function initialize() {
+            // Initialize Telegram
+            initTelegram();
+            
+            // Initialize game board
+            initializeBoard();
+            
+            // Set initial scores
+            updateScoreboard();
+            
+            // Event listeners
+            document.getElementById('localGameBtn').addEventListener('click', startLocalGame);
+            document.getElementById('onlineGameBtn').addEventListener('click', () => {
+                initializePeer();
+                showOnlinePanel();
+            });
+            document.getElementById('vsBotBtn').addEventListener('click', startBotGame);
+            document.getElementById('tournamentBtn').addEventListener('click', startTournament);
+            
+            document.getElementById('backToMenuBtn').addEventListener('click', showModeSelector);
+            document.getElementById('restartGameBtn').addEventListener('click', restartGame);
+            document.getElementById('newGameBtn').addEventListener('click', startNewGame);
+            
+            document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+            document.getElementById('joinRoomBtn').addEventListener('click', () => showModal('inviteModal'));
+            document.getElementById('copyIdBtn').addEventListener('click', copyPeerId);
+            document.getElementById('disconnectBtn').addEventListener('click', disconnectFromPeer);
+            
+            document.getElementById('shareInviteBtn').addEventListener('click', shareInvite);
+            document.getElementById('copyInviteBtn').addEventListener('click', copyInviteLink);
+            document.getElementById('cancelInviteBtn').addEventListener('click', showOnlinePanel);
+            
+            document.getElementById('joinByIdBtn').addEventListener('click', () => {
+                const roomId = document.getElementById('roomIdInput').value.trim();
+                if (roomId) {
+                    connectToPeer(roomId);
+                    closeModal('inviteModal');
+                }
+            });
+            
+            document.getElementById('cancelJoinBtn').addEventListener('click', () => closeModal('inviteModal'));
+            
+            document.getElementById('playAgainBtn').addEventListener('click', () => {
+                startNewGame();
+                closeModal('gameOverModal');
+            });
+            
+            document.getElementById('backToMenuModalBtn').addEventListener('click', () => {
+                showModeSelector();
+                closeModal('gameOverModal');
+            });
+            
+            // Instructions button in header (simulated)
+            setTimeout(() => {
+                // Add instructions button to header
+                const instructionsBtn = document.createElement('div');
+                instructionsBtn.innerHTML = '<i class="fas fa-question-circle"></i>';
+                instructionsBtn.style.cssText = 'font-size: 20px; cursor: pointer; opacity: 0.7;';
+                instructionsBtn.addEventListener('click', showInstructions);
+                document.querySelector('.header').appendChild(instructionsBtn);
+            }, 1000);
+            
+            // Initialize bot game logic
+            setInterval(() => {
+                if (gameState.mode === 'bot' && gameState.gameActive && 
+                    gameState.currentPlayer !== gameState.playerSide) {
+                    makeBotMove();
+                }
+            }, 1000);
+            
+            console.log('Game initialized for Telegram');
+        }
+        
+        // Start everything when page loads
+        window.addEventListener('DOMContentLoaded', initialize);
+        
+        // Handle beforeunload for online mode
+        window.addEventListener('beforeunload', () => {
+            if (gameState.conn) {
+                gameState.conn.close();
+            }
+        });
+    </script>
+</body>
+</html>
