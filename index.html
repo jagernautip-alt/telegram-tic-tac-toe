@@ -402,16 +402,17 @@
             font-size: 14px;
         }
         
-        #roomCode {
+        .code-display {
             font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-            font-size: 20px;
+            font-size: 28px;
             font-weight: 700;
             letter-spacing: 3px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            margin: 10px 0;
         }
         
         .online-controls {
@@ -552,21 +553,20 @@
             margin-top: 24px;
         }
         
-        /* Invite Link */
-        .invite-link {
+        /* Invite Section */
+        .invite-section {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            padding: 15px;
+            padding: 20px;
             margin: 20px 0;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            word-break: break-all;
         }
         
-        .invite-link-text {
-            font-family: monospace;
+        .invite-title {
             font-size: 14px;
-            color: var(--accent);
+            opacity: 0.8;
+            margin-bottom: 15px;
         }
         
         /* Footer */
@@ -616,6 +616,11 @@
             
             .online-controls {
                 grid-template-columns: 1fr;
+            }
+            
+            .code-display {
+                font-size: 24px;
+                padding: 12px;
             }
         }
     </style>
@@ -769,7 +774,9 @@
                 <div class="online-info">
                     <div class="info-row">
                         <div class="info-label">Код комнаты:</div>
-                        <div class="info-value" id="roomCode">XXXXXX</div>
+                        <div class="info-value">
+                            <div class="code-display" id="roomCode">XXXXXX</div>
+                        </div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">Статус:</div>
@@ -781,17 +788,46 @@
                     </div>
                 </div>
                 
-                <div class="invite-link">
-                    <div style="margin-bottom: 10px; font-size: 14px; opacity: 0.8;">Пригласите друга:</div>
-                    <div class="invite-link-text" id="inviteLinkText">Загрузка...</div>
+                <div class="invite-section">
+                    <div class="invite-title">Пригласите друга:</div>
+                    <div class="code-display" id="inviteCodeDisplay">XXXXXX</div>
+                    <p style="font-size: 14px; opacity: 0.8; margin-top: 10px;">Отправьте этот код другу</p>
                 </div>
                 
                 <div class="online-controls">
-                    <button class="btn btn-primary btn-full" id="copyInviteBtn">
-                        <i class="fas fa-copy"></i> Копировать ссылку
+                    <button class="btn btn-primary btn-full" id="copyCodeBtn">
+                        <i class="fas fa-copy"></i> Копировать код
                     </button>
                     <button class="btn btn-outline" id="cancelRoomBtn">
                         <i class="fas fa-times"></i> Отмена
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Waiting Room Panel -->
+            <section class="online-panel fade-in" id="waitingRoomPanel" style="display: none;">
+                <div class="online-header">
+                    <div class="online-icon">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="online-title">Ожидание соперника</div>
+                </div>
+                
+                <div class="connection-status">
+                    <div class="status-indicator connecting"></div>
+                    <div class="status-text" id="waitingStatusText">Поиск соперника...</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p id="waitingMessage">Ищем случайного соперника для вас...</p>
+                </div>
+                
+                <div class="online-controls">
+                    <button class="btn btn-danger btn-full" id="cancelWaitingBtn">
+                        <i class="fas fa-times"></i> Отменить поиск
                     </button>
                 </div>
             </section>
@@ -856,7 +892,7 @@
                     3. <strong>С ботом</strong> - играйте против компьютера<br><br>
                     
                     <strong>Онлайн игра:</strong><br>
-                    • Создайте комнату и поделитесь кодом с другом<br>
+                    • Создайте комнату и поделитесь 6-значным кодом с другом<br>
                     • Или введите код комнаты друга<br>
                     • Или используйте "Быстрая игра" для поиска случайного соперника<br><br>
                     
@@ -886,12 +922,16 @@
             playerId: null,
             socket: null,
             roomId: null,
+            roomCode: null,
             inRoom: false,
-            isRoomOwner: false
+            isRoomOwner: false,
+            isSearching: false
         };
         
         // Socket.io connection
-        const SOCKET_SERVER_URL = 'https://tic-tac-toe-socket-server.onrender.com'; // Облачный сервер
+        const SOCKET_SERVER_URL = 'https://tic-tac-toe-socket-io-server.onrender.com';
+        // Альтернативный сервер на случай проблем
+        // const SOCKET_SERVER_URL = 'https://tic-tac-toe-server-2.onrender.com';
         
         // DOM Elements
         const appContainer = document.getElementById('appContainer');
@@ -899,6 +939,7 @@
         const gameBoardContainer = document.getElementById('gameBoardContainer');
         const onlinePanel = document.getElementById('onlinePanel');
         const createRoomPanel = document.getElementById('createRoomPanel');
+        const waitingRoomPanel = document.getElementById('waitingRoomPanel');
         const statsPanel = document.getElementById('statsPanel');
         const gameBoard = document.getElementById('gameBoard');
         const playerXName = document.getElementById('playerXName');
@@ -918,11 +959,28 @@
         const globalStatusIndicator = document.getElementById('globalStatusIndicator');
         const globalStatusText = document.getElementById('globalStatusText');
         const roomCodeElement = document.getElementById('roomCode');
+        const inviteCodeDisplay = document.getElementById('inviteCodeDisplay');
         const roomStatusElement = document.getElementById('roomStatus');
         const roomPlayersElement = document.getElementById('roomPlayers');
-        const inviteLinkText = document.getElementById('inviteLinkText');
+        const waitingStatusText = document.getElementById('waitingStatusText');
+        const waitingMessage = document.getElementById('waitingMessage');
         
-        // Generate random player name
+        // Генерация 6-значного кода
+        function generateSixDigitCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+        
+        // Генерация короткого ID игрока
+        function generateShortPlayerId() {
+            return Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
+        
+        // Генерация случайного имени игрока
         function generatePlayerName() {
             const adjectives = ['Быстрый', 'Умный', 'Смелый', 'Ловкий', 'Мудрый', 'Сильный', 'Хитрый', 'Весёлый'];
             const nouns = ['Игрок', 'Воин', 'Маг', 'Странник', 'Герой', 'Чемпион', 'Победитель', 'Мастер'];
@@ -960,7 +1018,7 @@
             makeMove(index, gameState.currentPlayer);
             
             // Send move to opponent in online mode
-            if (gameState.mode === 'online' && gameState.socket) {
+            if (gameState.mode === 'online' && gameState.socket && gameState.inRoom) {
                 gameState.socket.emit('makeMove', {
                     roomId: gameState.roomId,
                     index: index,
@@ -1024,7 +1082,7 @@
                 updateScoreboard();
                 
                 // Send game result in online mode
-                if (gameState.mode === 'online' && gameState.socket) {
+                if (gameState.mode === 'online' && gameState.socket && gameState.inRoom) {
                     gameState.socket.emit('gameOver', {
                         roomId: gameState.roomId,
                         winner: winner
@@ -1043,7 +1101,7 @@
                 updateScoreboard();
                 
                 // Send game result in online mode
-                if (gameState.mode === 'online' && gameState.socket) {
+                if (gameState.mode === 'online' && gameState.socket && gameState.inRoom) {
                     gameState.socket.emit('gameOver', {
                         roomId: gameState.roomId,
                         winner: 'draw'
@@ -1119,7 +1177,7 @@
             updatePlayerTurn();
             
             // Send game start to opponent in online mode
-            if (gameState.mode === 'online' && gameState.socket) {
+            if (gameState.mode === 'online' && gameState.socket && gameState.inRoom) {
                 gameState.socket.emit('newGame', {
                     roomId: gameState.roomId
                 });
@@ -1252,8 +1310,10 @@
             gameBoardContainer.style.display = 'none';
             onlinePanel.style.display = 'none';
             createRoomPanel.style.display = 'none';
+            waitingRoomPanel.style.display = 'none';
             statsPanel.style.display = 'grid';
             gameState.mode = 'menu';
+            gameState.isSearching = false;
             
             // Disconnect from socket if in online mode
             if (gameState.socket && gameState.inRoom) {
@@ -1266,7 +1326,9 @@
             gameBoardContainer.style.display = 'flex';
             onlinePanel.style.display = 'none';
             createRoomPanel.style.display = 'none';
+            waitingRoomPanel.style.display = 'none';
             statsPanel.style.display = 'grid';
+            gameState.isSearching = false;
         }
         
         function showOnlinePanel() {
@@ -1274,6 +1336,7 @@
             gameBoardContainer.style.display = 'none';
             onlinePanel.style.display = 'flex';
             createRoomPanel.style.display = 'none';
+            waitingRoomPanel.style.display = 'none';
             statsPanel.style.display = 'none';
             
             // Initialize socket connection
@@ -1285,12 +1348,23 @@
             gameBoardContainer.style.display = 'none';
             onlinePanel.style.display = 'none';
             createRoomPanel.style.display = 'flex';
+            waitingRoomPanel.style.display = 'none';
             statsPanel.style.display = 'none';
+        }
+        
+        function showWaitingRoomPanel() {
+            modeSelector.style.display = 'none';
+            gameBoardContainer.style.display = 'none';
+            onlinePanel.style.display = 'none';
+            createRoomPanel.style.display = 'none';
+            waitingRoomPanel.style.display = 'flex';
+            statsPanel.style.display = 'none';
+            gameState.isSearching = true;
         }
         
         // Initialize Socket.io connection
         function initializeSocket() {
-            if (gameState.socket) {
+            if (gameState.socket && gameState.socket.connected) {
                 updateConnectionStatus('connected', 'Подключено');
                 return;
             }
@@ -1298,19 +1372,22 @@
             updateConnectionStatus('connecting', 'Подключение к серверу...');
             updateGlobalStatus('connecting', 'Подключение...');
             
+            // Generate player ID
+            gameState.playerId = generateShortPlayerId();
+            playerIdElement.textContent = gameState.playerId;
+            
             // Connect to Socket.io server
             gameState.socket = io(SOCKET_SERVER_URL, {
                 transports: ['websocket', 'polling'],
                 reconnection: true,
                 reconnectionAttempts: 5,
-                reconnectionDelay: 1000
+                reconnectionDelay: 1000,
+                timeout: 10000
             });
             
             // Socket event handlers
             gameState.socket.on('connect', () => {
                 console.log('Connected to server with ID:', gameState.socket.id);
-                gameState.playerId = gameState.socket.id.substring(0, 8);
-                playerIdElement.textContent = gameState.playerId;
                 updateConnectionStatus('connected', 'Подключено к серверу');
                 updateGlobalStatus('connected', 'Онлайн');
             });
@@ -1320,10 +1397,10 @@
                 updateConnectionStatus('error', 'Ошибка подключения');
                 updateGlobalStatus('error', 'Ошибка сети');
                 
-                // Fallback to local server if cloud server fails
+                // Try alternative server
                 setTimeout(() => {
-                    if (!gameState.socket.connected) {
-                        alert('Не удалось подключиться к серверу. Используйте режим "С другом" или "С ботом".');
+                    if (!gameState.socket.connected && !gameState.socket.connecting) {
+                        alert('Не удалось подключиться к основному серверу. Используйте режим "С другом" или "С ботом".');
                         showModeSelector();
                     }
                 }, 3000);
@@ -1337,16 +1414,14 @@
             // Room events
             gameState.socket.on('roomCreated', (data) => {
                 gameState.roomId = data.roomId;
+                gameState.roomCode = data.roomCode;
                 gameState.inRoom = true;
                 gameState.isRoomOwner = true;
                 
                 roomCodeElement.textContent = data.roomCode;
+                inviteCodeDisplay.textContent = data.roomCode;
                 roomStatusElement.textContent = 'Ожидание игрока...';
                 roomPlayersElement.textContent = '1/2';
-                
-                // Generate invite link
-                const inviteLink = `${window.location.origin}${window.location.pathname}?room=${data.roomCode}`;
-                inviteLinkText.textContent = inviteLink;
                 
                 showCreateRoomPanel();
             });
@@ -1375,9 +1450,10 @@
                 }, 1000);
             });
             
-            gameState.socket.on('playerLeft', (data) => {
+            gameState.socket.on('playerLeft', () => {
                 gameState.inRoom = false;
                 gameState.roomId = null;
+                gameState.roomCode = null;
                 
                 if (gameState.mode === 'online') {
                     alert('Оппонент покинул игру.');
@@ -1387,10 +1463,37 @@
             
             gameState.socket.on('roomNotFound', () => {
                 alert('Комната не найдена. Проверьте код комнаты.');
+                gameState.isSearching = false;
             });
             
             gameState.socket.on('roomFull', () => {
                 alert('Комната заполнена. Максимум 2 игрока.');
+                gameState.isSearching = false;
+            });
+            
+            // Quick play events
+            gameState.socket.on('matchFound', (data) => {
+                gameState.roomId = data.roomId;
+                gameState.roomCode = data.roomCode;
+                gameState.inRoom = true;
+                gameState.isRoomOwner = data.isOwner;
+                gameState.opponentName = data.opponentName;
+                
+                opponentNameElement.textContent = data.opponentName;
+                playerOName.textContent = data.opponentName;
+                
+                // Set player sides
+                gameState.playerSide = data.isOwner ? 'X' : 'O';
+                playerSideElement.textContent = gameState.playerSide;
+                
+                gameState.isSearching = false;
+                showGameBoard();
+                startNewGame();
+            });
+            
+            gameState.socket.on('searching', () => {
+                waitingStatusText.textContent = 'Поиск соперника...';
+                waitingMessage.textContent = 'Ищем случайного соперника для вас...';
             });
             
             // Game events
@@ -1411,24 +1514,6 @@
                 if (gameState.mode === 'online') {
                     showGameOver(data.winner);
                 }
-            });
-            
-            // Quick play events
-            gameState.socket.on('matchFound', (data) => {
-                gameState.roomId = data.roomId;
-                gameState.inRoom = true;
-                gameState.isRoomOwner = data.isOwner;
-                gameState.opponentName = data.opponentName;
-                
-                opponentNameElement.textContent = data.opponentName;
-                playerOName.textContent = data.opponentName;
-                
-                // Set player sides
-                gameState.playerSide = data.isOwner ? 'X' : 'O';
-                playerSideElement.textContent = gameState.playerSide;
-                
-                showGameBoard();
-                startNewGame();
             });
         }
         
@@ -1480,9 +1565,12 @@
             }
             
             gameState.playerName = generatePlayerName();
+            const roomCode = generateSixDigitCode();
+            
             gameState.socket.emit('createRoom', {
                 playerName: gameState.playerName,
-                playerId: gameState.playerId
+                playerId: gameState.playerId,
+                roomCode: roomCode
             });
         }
         
@@ -1520,6 +1608,7 @@
                 playerId: gameState.playerId
             });
             
+            showWaitingRoomPanel();
             updateConnectionStatus('connecting', 'Поиск соперника...');
         }
         
@@ -1531,16 +1620,26 @@
                 });
                 gameState.inRoom = false;
                 gameState.roomId = null;
+                gameState.roomCode = null;
                 gameState.isRoomOwner = false;
             }
         }
         
-        // Copy invite link
-        function copyInviteLink() {
-            const link = inviteLinkText.textContent;
-            navigator.clipboard.writeText(link).then(() => {
-                alert('Ссылка скопирована в буфер обмена! Отправьте её другу.');
+        // Copy room code
+        function copyRoomCode() {
+            const code = inviteCodeDisplay.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert(`Код ${code} скопирован в буфер обмена! Отправьте его другу.`);
             });
+        }
+        
+        // Cancel search
+        function cancelSearch() {
+            if (gameState.socket && gameState.isSearching) {
+                gameState.socket.emit('cancelSearch');
+                gameState.isSearching = false;
+                showOnlinePanel();
+            }
         }
         
         // Show modal
@@ -1597,8 +1696,9 @@
             document.getElementById('quickPlayBtn').addEventListener('click', quickPlay);
             document.getElementById('disconnectBtn').addEventListener('click', showModeSelector);
             
-            document.getElementById('copyInviteBtn').addEventListener('click', copyInviteLink);
+            document.getElementById('copyCodeBtn').addEventListener('click', copyRoomCode);
             document.getElementById('cancelRoomBtn').addEventListener('click', showOnlinePanel);
+            document.getElementById('cancelWaitingBtn').addEventListener('click', cancelSearch);
             
             document.getElementById('joinRoomByIdBtn').addEventListener('click', () => {
                 const roomCode = document.getElementById('roomCodeInput').value.trim();
