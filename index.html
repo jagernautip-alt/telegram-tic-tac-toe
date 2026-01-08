@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Крестики-Нолики • Мультиплеер</title>
+    <title>Крестики-Нолики • 4 в 1</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             color: white;
             min-height: 100vh;
             padding: 20px;
@@ -111,6 +111,10 @@
         
         .btn-danger {
             background: linear-gradient(135deg, #FF416C, #FF4B2B);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #36D1DC, #5B86E5);
         }
         
         .btn-outline {
@@ -246,8 +250,8 @@
             gap: 15px;
         }
         
-        /* Online Panel */
-        .online-panel {
+        /* Connection Panel */
+        .connection-panel {
             display: none;
         }
         
@@ -331,7 +335,7 @@
             margin-top: 15px;
         }
         
-        .online-controls {
+        .connection-controls {
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -359,6 +363,47 @@
         
         .btn-full {
             width: 100%;
+        }
+        
+        /* Bluetooth specific */
+        .bluetooth-devices {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .device-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        
+        .device-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(0, 219, 222, 0.3);
+        }
+        
+        .device-name {
+            font-weight: 500;
+        }
+        
+        .device-id {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-family: monospace;
+        }
+        
+        .no-devices {
+            text-align: center;
+            padding: 30px;
+            opacity: 0.7;
         }
         
         /* Stats */
@@ -493,21 +538,21 @@
         <section class="menu-section" id="menuSection">
             <div class="header">
                 <h1>🎮 Крестики-Нолики</h1>
-                <p class="subtitle">Играйте где угодно: офлайн, по ссылке или в локальной сети</p>
+                <p class="subtitle">4 способа игры: локально, с ботом, по ссылке или Bluetooth</p>
             </div>
             
             <div class="menu-buttons">
-                <button class="btn btn-primary" id="onlineLinkBtn">
-                    <span>🔗</span> Играть по ссылке (Интернет)
-                </button>
-                <button class="btn btn-success" id="localNetworkBtn">
-                    <span>📡</span> Играть в локальной сети
-                </button>
                 <button class="btn btn-secondary" id="localGameBtn">
-                    <span>👥</span> Играть вдвоем на одном устройстве
+                    <span>👥</span> Локально на одном устройстве
                 </button>
                 <button class="btn btn-warning" id="vsBotBtn">
                     <span>🤖</span> Играть с компьютером
+                </button>
+                <button class="btn btn-primary" id="onlineLinkBtn">
+                    <span>🔗</span> Играть по ссылке
+                </button>
+                <button class="btn btn-info" id="bluetoothBtn">
+                    <span>📱</span> Играть через Bluetooth
                 </button>
                 <button class="btn btn-outline" id="statsBtn">
                     <span>📊</span> Статистика
@@ -552,8 +597,8 @@
             </div>
         </section>
         
-        <!-- Online Panel (Link) -->
-        <section class="online-panel" id="onlineLinkPanel">
+        <!-- Online Link Panel -->
+        <section class="connection-panel" id="onlineLinkPanel">
             <h2 class="section-title">Игра по ссылке</h2>
             
             <div class="connection-status">
@@ -574,7 +619,7 @@
                 <p class="connection-note">Игрок перейдет по ссылке и подключится автоматически</p>
             </div>
             
-            <div class="online-controls">
+            <div class="connection-controls">
                 <button class="btn btn-success btn-full" id="createLinkGameBtn">
                     <span>🎮</span> Создать игру
                 </button>
@@ -590,35 +635,41 @@
             </div>
         </section>
         
-        <!-- Local Network Panel -->
-        <section class="online-panel" id="localNetworkPanel">
-            <h2 class="section-title">Локальная сеть</h2>
+        <!-- Bluetooth Panel -->
+        <section class="connection-panel" id="bluetoothPanel">
+            <h2 class="section-title">Игра через Bluetooth</h2>
             
             <div class="connection-status">
-                <div class="status-indicator" id="networkStatusIndicator"></div>
-                <div class="status-text" id="networkStatusText">Ожидание подключения</div>
+                <div class="status-indicator" id="bluetoothStatusIndicator"></div>
+                <div class="status-text" id="bluetoothStatusText">Проверка поддержки Bluetooth...</div>
             </div>
             
             <div class="connection-info">
-                <p>Подключитесь к одной Wi-Fi сети:</p>
+                <p>Подключитесь к другому устройству через Bluetooth:</p>
                 
-                <div class="connection-code" id="networkCode">XXXXXX</div>
-                <div class="connection-url" id="networkUrl">Загрузка...</div>
-                
-                <p class="connection-note">Откройте ссылку на другом устройстве в той же сети</p>
-            </div>
-            
-            <div class="online-controls">
-                <button class="btn btn-success btn-full" id="createNetworkGameBtn">
-                    <span>📡</span> Создать комнату в сети
-                </button>
-                
-                <div class="input-group">
-                    <input type="text" id="networkCodeInput" placeholder="Введите код из сети">
-                    <button class="btn btn-primary" id="joinNetworkBtn">Подключиться</button>
+                <div class="bluetooth-devices" id="bluetoothDevices">
+                    <div class="no-devices" id="noDevicesMessage">
+                        Нажмите "Найти устройства" для поиска
+                    </div>
                 </div>
                 
-                <button class="btn btn-outline" id="backFromNetworkBtn">
+                <p class="connection-note">Убедитесь, что Bluetooth включен на обоих устройствах</p>
+            </div>
+            
+            <div class="connection-controls">
+                <button class="btn btn-success btn-full" id="scanDevicesBtn">
+                    <span>🔍</span> Найти устройства
+                </button>
+                
+                <button class="btn btn-warning btn-full" id="advertiseBtn">
+                    <span>📢</span> Стать видимым
+                </button>
+                
+                <button class="btn btn-danger btn-full" id="disconnectBluetoothBtn">
+                    <span>❌</span> Отключиться
+                </button>
+                
+                <button class="btn btn-outline" id="backFromBluetoothBtn">
                     <span>←</span> Назад в меню
                 </button>
             </div>
@@ -668,7 +719,7 @@
     <script>
         // Game State
         let gameState = {
-            mode: 'menu', // 'menu', 'local', 'bot', 'link', 'network'
+            mode: 'menu',
             board: ['', '', '', '', '', '', '', '', ''],
             currentPlayer: 'X',
             gameActive: false,
@@ -677,43 +728,100 @@
             opponentName: 'Оппонент',
             connection: null,
             roomCode: null,
-            isHost: false
+            isHost: false,
+            connectionType: null, // 'link', 'bluetooth'
+            bluetoothDevice: null,
+            bluetoothCharacteristic: null
         };
         
-        // Simple WebSocket simulation (for demo)
+        // Simple WebSocket simulation for link mode
         class SimpleConnection {
-            constructor() {
+            constructor(type) {
+                this.type = type;
                 this.callbacks = {};
                 this.connected = false;
                 this.mockInterval = null;
+                this.peerId = Math.random().toString(36).substr(2, 6).toUpperCase();
             }
             
             connect(roomCode, isHost) {
                 this.roomCode = roomCode;
                 this.isHost = isHost;
-                this.connected = true;
                 
-                // Simulate connection
+                // Simulate connection delay
                 setTimeout(() => {
+                    this.connected = true;
+                    
                     if (this.callbacks.connect) {
-                        this.callbacks.connect();
+                        this.callbacks.connect({
+                            type: 'connect',
+                            peerId: this.peerId,
+                            isHost: isHost
+                        });
                     }
                     
-                    // Mock receiving data after 1 second
-                    this.mockInterval = setInterval(() => {
-                        if (this.callbacks.data && Math.random() > 0.8) {
-                            this.callbacks.data({
-                                type: 'ping',
-                                message: 'Mock connection'
-                            });
-                        }
-                    }, 1000);
-                }, 500);
+                    // Store connection in localStorage for cross-tab communication
+                    if (this.type === 'link') {
+                        localStorage.setItem(`ttt-room-${roomCode}`, JSON.stringify({
+                            host: isHost ? this.peerId : null,
+                            players: [this.peerId],
+                            lastUpdate: Date.now()
+                        }));
+                        
+                        // Listen for changes
+                        this.startPolling(roomCode);
+                    }
+                    
+                }, 1000);
             }
             
             send(data) {
-                console.log('Sending data:', data);
-                // In real implementation, this would send via WebSocket
+                console.log('Sending:', data);
+                
+                // Store move in localStorage for link mode
+                if (this.type === 'link' && this.roomCode) {
+                    const roomData = JSON.parse(localStorage.getItem(`ttt-room-${this.roomCode}`) || '{}');
+                    roomData.lastMove = {
+                        ...data,
+                        sender: this.peerId,
+                        timestamp: Date.now()
+                    };
+                    roomData.lastUpdate = Date.now();
+                    localStorage.setItem(`ttt-room-${this.roomCode}`, JSON.stringify(roomData));
+                }
+                
+                // Also trigger callback for immediate response
+                if (this.callbacks.data && !this.isHost) {
+                    setTimeout(() => {
+                        this.callbacks.data(data);
+                    }, 300);
+                }
+            }
+            
+            startPolling(roomCode) {
+                this.mockInterval = setInterval(() => {
+                    const roomData = JSON.parse(localStorage.getItem(`ttt-room-${roomCode}`) || '{}');
+                    
+                    if (roomData.lastMove && 
+                        roomData.lastMove.sender !== this.peerId &&
+                        roomData.lastMove.timestamp > (this.lastPoll || 0)) {
+                        
+                        this.lastPoll = Date.now();
+                        
+                        if (this.callbacks.data) {
+                            this.callbacks.data(roomData.lastMove);
+                        }
+                    }
+                    
+                    // Check if other player disconnected
+                    if (Date.now() - roomData.lastUpdate > 10000 && roomData.players) {
+                        const myIndex = roomData.players.indexOf(this.peerId);
+                        if (myIndex !== -1 && roomData.players.length < 2) {
+                            this.disconnect();
+                        }
+                    }
+                    
+                }, 500);
             }
             
             on(event, callback) {
@@ -725,6 +833,12 @@
                 if (this.mockInterval) {
                     clearInterval(this.mockInterval);
                 }
+                
+                // Clean up localStorage
+                if (this.type === 'link' && this.roomCode) {
+                    localStorage.removeItem(`ttt-room-${this.roomCode}`);
+                }
+                
                 if (this.callbacks.disconnect) {
                     this.callbacks.disconnect();
                 }
@@ -737,6 +851,7 @@
             loadStats();
             setupEventListeners();
             generateRoomCode();
+            checkBluetoothSupport();
         }
         
         // Initialize game board
@@ -760,23 +875,31 @@
             }
             
             // Only allow moves for current player in online modes
-            if ((gameState.mode === 'link' || gameState.mode === 'network') && 
+            if ((gameState.mode === 'link' || gameState.mode === 'bluetooth') && 
                 gameState.currentPlayer !== gameState.playerSide) {
+                showMessage('Сейчас ход оппонента!');
                 return;
             }
             
             makeMove(index, gameState.currentPlayer);
-            checkGameResult();
             
             // Send move in online modes
-            if ((gameState.mode === 'link' || gameState.mode === 'network') && 
-                gameState.connection && gameState.connection.connected) {
+            if (gameState.mode === 'link' && gameState.connection && gameState.connection.connected) {
                 gameState.connection.send({
                     type: 'move',
                     index: index,
                     player: gameState.currentPlayer
                 });
+            } else if (gameState.mode === 'bluetooth' && gameState.bluetoothCharacteristic) {
+                sendBluetoothData({
+                    type: 'move',
+                    index: index,
+                    player: gameState.currentPlayer
+                });
             }
+            
+            // Check for win/draw
+            setTimeout(() => checkGameResult(), 100);
         }
         
         // Make a move
@@ -794,9 +917,9 @@
         // Check game result
         function checkGameResult() {
             const winningConditions = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-                [0, 4, 8], [2, 4, 6] // Diagonals
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
             ];
             
             let roundWon = false;
@@ -824,14 +947,8 @@
                 saveStats();
                 showGameOver(winner);
                 
-                // Send result in online modes
-                if ((gameState.mode === 'link' || gameState.mode === 'network') && 
-                    gameState.connection && gameState.connection.connected) {
-                    gameState.connection.send({
-                        type: 'gameOver',
-                        winner: winner
-                    });
-                }
+                // Send result
+                sendGameResult(winner);
                 return;
             }
             
@@ -841,15 +958,22 @@
                 gameState.scores.draw++;
                 saveStats();
                 showGameOver('draw');
-                
-                // Send result in online modes
-                if ((gameState.mode === 'link' || gameState.mode === 'network') && 
-                    gameState.connection && gameState.connection.connected) {
-                    gameState.connection.send({
-                        type: 'gameOver',
-                        winner: 'draw'
-                    });
-                }
+                sendGameResult('draw');
+            }
+        }
+        
+        // Send game result
+        function sendGameResult(winner) {
+            if (gameState.mode === 'link' && gameState.connection && gameState.connection.connected) {
+                gameState.connection.send({
+                    type: 'gameOver',
+                    winner: winner
+                });
+            } else if (gameState.mode === 'bluetooth' && gameState.bluetoothCharacteristic) {
+                sendBluetoothData({
+                    type: 'gameOver',
+                    winner: winner
+                });
             }
         }
         
@@ -886,7 +1010,6 @@
                     'Игра завершена';
                 playerOStatus.textContent = 'Ожидание';
                 
-                // Highlight active player
                 playerXInfo.classList.add('active');
                 playerOInfo.classList.remove('active');
             } else {
@@ -895,7 +1018,6 @@
                     'Игра завершена';
                 playerXStatus.textContent = 'Ожидание';
                 
-                // Highlight active player
                 playerOInfo.classList.add('active');
                 playerXInfo.classList.remove('active');
             }
@@ -918,9 +1040,12 @@
             closeModal('gameOverModal');
             
             // Send new game signal
-            if ((gameState.mode === 'link' || gameState.mode === 'network') && 
-                gameState.connection && gameState.connection.connected) {
+            if (gameState.mode === 'link' && gameState.connection && gameState.connection.connected) {
                 gameState.connection.send({
+                    type: 'newGame'
+                });
+            } else if (gameState.mode === 'bluetooth' && gameState.bluetoothCharacteristic) {
+                sendBluetoothData({
                     type: 'newGame'
                 });
             }
@@ -929,10 +1054,10 @@
         // Setup event listeners
         function setupEventListeners() {
             // Menu buttons
-            document.getElementById('onlineLinkBtn').addEventListener('click', showOnlineLinkPanel);
-            document.getElementById('localNetworkBtn').addEventListener('click', showLocalNetworkPanel);
             document.getElementById('localGameBtn').addEventListener('click', startLocalGame);
             document.getElementById('vsBotBtn').addEventListener('click', startBotGame);
+            document.getElementById('onlineLinkBtn').addEventListener('click', showOnlineLinkPanel);
+            document.getElementById('bluetoothBtn').addEventListener('click', showBluetoothPanel);
             document.getElementById('statsBtn').addEventListener('click', showStats);
             
             // Game controls
@@ -944,10 +1069,11 @@
             document.getElementById('joinByCodeBtn').addEventListener('click', joinByCode);
             document.getElementById('backFromLinkBtn').addEventListener('click', showMenu);
             
-            // Local network panel
-            document.getElementById('createNetworkGameBtn').addEventListener('click', createNetworkGame);
-            document.getElementById('joinNetworkBtn').addEventListener('click', joinNetwork);
-            document.getElementById('backFromNetworkBtn').addEventListener('click', showMenu);
+            // Bluetooth panel
+            document.getElementById('scanDevicesBtn').addEventListener('click', scanBluetoothDevices);
+            document.getElementById('advertiseBtn').addEventListener('click', advertiseBluetooth);
+            document.getElementById('disconnectBluetoothBtn').addEventListener('click', disconnectBluetooth);
+            document.getElementById('backFromBluetoothBtn').addEventListener('click', showMenu);
             
             // Stats
             document.getElementById('backFromStatsBtn').addEventListener('click', showMenu);
@@ -962,23 +1088,20 @@
             document.getElementById('menuSection').style.display = 'block';
             document.getElementById('gameSection').style.display = 'none';
             document.getElementById('onlineLinkPanel').style.display = 'none';
-            document.getElementById('localNetworkPanel').style.display = 'none';
+            document.getElementById('bluetoothPanel').style.display = 'none';
             document.getElementById('statsSection').style.display = 'none';
             
             gameState.mode = 'menu';
             
-            // Disconnect if connected
-            if (gameState.connection) {
-                gameState.connection.disconnect();
-                gameState.connection = null;
-            }
+            // Disconnect connections
+            disconnectAll();
         }
         
         function showGame() {
             document.getElementById('menuSection').style.display = 'none';
             document.getElementById('gameSection').style.display = 'block';
             document.getElementById('onlineLinkPanel').style.display = 'none';
-            document.getElementById('localNetworkPanel').style.display = 'none';
+            document.getElementById('bluetoothPanel').style.display = 'none';
             document.getElementById('statsSection').style.display = 'none';
             
             updateGameStatus();
@@ -988,29 +1111,28 @@
             document.getElementById('menuSection').style.display = 'none';
             document.getElementById('gameSection').style.display = 'none';
             document.getElementById('onlineLinkPanel').style.display = 'block';
-            document.getElementById('localNetworkPanel').style.display = 'none';
+            document.getElementById('bluetoothPanel').style.display = 'none';
             document.getElementById('statsSection').style.display = 'none';
             
             updateLinkStatus('Готов к подключению');
             generateRoomCode();
         }
         
-        function showLocalNetworkPanel() {
+        function showBluetoothPanel() {
             document.getElementById('menuSection').style.display = 'none';
             document.getElementById('gameSection').style.display = 'none';
             document.getElementById('onlineLinkPanel').style.display = 'none';
-            document.getElementById('localNetworkPanel').style.display = 'block';
+            document.getElementById('bluetoothPanel').style.display = 'block';
             document.getElementById('statsSection').style.display = 'none';
             
-            updateNetworkStatus('Готов к подключению');
-            generateRoomCode();
+            updateBluetoothStatus('Проверка поддержки...');
         }
         
         function showStats() {
             document.getElementById('menuSection').style.display = 'none';
             document.getElementById('gameSection').style.display = 'none';
             document.getElementById('onlineLinkPanel').style.display = 'none';
-            document.getElementById('localNetworkPanel').style.display = 'none';
+            document.getElementById('bluetoothPanel').style.display = 'none';
             document.getElementById('statsSection').style.display = 'block';
             
             updateStatsDisplay();
@@ -1047,7 +1169,7 @@
             
             // Bot will make move if it goes first
             if (gameState.currentPlayer !== gameState.playerSide) {
-                setTimeout(makeBotMove, 500);
+                setTimeout(makeBotMove, 800);
             }
         }
         
@@ -1057,18 +1179,75 @@
                 return;
             }
             
-            let availableCells = [];
-            gameState.board.forEach((cell, index) => {
-                if (cell === '') availableCells.push(index);
-            });
-            
-            if (availableCells.length > 0) {
-                const randomIndex = Math.floor(Math.random() * availableCells.length);
-                setTimeout(() => {
-                    makeMove(availableCells[randomIndex], 'O');
-                    checkGameResult();
-                }, 500);
+            // Try to win
+            for (let i = 0; i < 9; i++) {
+                if (!gameState.board[i]) {
+                    gameState.board[i] = 'O';
+                    if (checkWin('O')) {
+                        gameState.board[i] = '';
+                        setTimeout(() => handleCellClick(i), 500);
+                        return;
+                    }
+                    gameState.board[i] = '';
+                }
             }
+            
+            // Try to block
+            for (let i = 0; i < 9; i++) {
+                if (!gameState.board[i]) {
+                    gameState.board[i] = 'X';
+                    if (checkWin('X')) {
+                        gameState.board[i] = '';
+                        setTimeout(() => handleCellClick(i), 500);
+                        return;
+                    }
+                    gameState.board[i] = '';
+                }
+            }
+            
+            // Take center
+            if (!gameState.board[4]) {
+                setTimeout(() => handleCellClick(4), 500);
+                return;
+            }
+            
+            // Take corner
+            const corners = [0, 2, 6, 8];
+            const availableCorners = corners.filter(i => !gameState.board[i]);
+            if (availableCorners.length > 0) {
+                const corner = availableCorners[Math.floor(Math.random() * availableCorners.length)];
+                setTimeout(() => handleCellClick(corner), 500);
+                return;
+            }
+            
+            // Random move
+            const available = [];
+            for (let i = 0; i < 9; i++) {
+                if (!gameState.board[i]) available.push(i);
+            }
+            if (available.length > 0) {
+                const randomIndex = available[Math.floor(Math.random() * available.length)];
+                setTimeout(() => handleCellClick(randomIndex), 500);
+            }
+        }
+        
+        // Check win for specific player
+        function checkWin(player) {
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState.board[a] === player && 
+                    gameState.board[b] === player && 
+                    gameState.board[c] === player) {
+                    return true;
+                }
+            }
+            return false;
         }
         
         // Stats functions
@@ -1096,16 +1275,11 @@
             }
             gameState.roomCode = code;
             
-            // Update displays
             document.getElementById('roomCode').textContent = code;
-            document.getElementById('networkCode').textContent = code;
             
-            // Generate URLs
             const baseUrl = window.location.origin + window.location.pathname;
             document.getElementById('gameUrl').textContent = `${baseUrl}?room=${code}`;
-            document.getElementById('networkUrl').textContent = `${baseUrl}?network=${code}`;
             
-            // Generate QR code
             generateQRCode(`${baseUrl}?room=${code}`, 'qrCode');
         }
         
@@ -1123,7 +1297,7 @@
             });
         }
         
-        // Update connection status
+        // Update status functions
         function updateLinkStatus(text, status) {
             const element = document.getElementById('linkStatusText');
             const indicator = document.getElementById('linkStatusIndicator');
@@ -1134,9 +1308,9 @@
             if (status === 'connecting') indicator.classList.add('connecting');
         }
         
-        function updateNetworkStatus(text, status) {
-            const element = document.getElementById('networkStatusText');
-            const indicator = document.getElementById('networkStatusIndicator');
+        function updateBluetoothStatus(text, status) {
+            const element = document.getElementById('bluetoothStatusText');
+            const indicator = document.getElementById('bluetoothStatusIndicator');
             
             element.textContent = text;
             indicator.className = 'status-indicator';
@@ -1163,11 +1337,11 @@
                     indicator.className = 'status-indicator';
                     if (gameState.connection?.connected) indicator.classList.add('connected');
                     break;
-                case 'network':
-                    element.textContent = gameState.connection?.connected ? 
-                        'Подключено в сети' : 'Ожидание подключения...';
+                case 'bluetooth':
+                    element.textContent = gameState.bluetoothDevice ? 
+                        'Подключено по Bluetooth' : 'Ожидание подключения...';
                     indicator.className = 'status-indicator';
-                    if (gameState.connection?.connected) indicator.classList.add('connected');
+                    if (gameState.bluetoothDevice) indicator.classList.add('connected');
                     break;
             }
         }
@@ -1177,17 +1351,16 @@
             gameState.mode = 'link';
             gameState.isHost = true;
             gameState.playerSide = 'X';
+            gameState.connectionType = 'link';
             
             updateLinkStatus('Ожидание игрока...', 'connecting');
             
-            // Create mock connection
-            gameState.connection = new SimpleConnection();
+            gameState.connection = new SimpleConnection('link');
             gameState.connection.connect(gameState.roomCode, true);
             
-            gameState.connection.on('connect', () => {
+            gameState.connection.on('connect', (data) => {
                 updateLinkStatus('Игрок подключился!', 'connected');
                 
-                // Update game info
                 document.getElementById('playerXName').textContent = 'Вы (X)';
                 document.getElementById('playerOName').textContent = 'Оппонент (O)';
                 
@@ -1195,13 +1368,12 @@
                 startNewGame();
             });
             
-            // Handle incoming data
             gameState.connection.on('data', (data) => {
                 console.log('Received data:', data);
                 
                 if (data.type === 'move') {
                     makeMove(data.index, data.player);
-                    checkGameResult();
+                    setTimeout(() => checkGameResult(), 100);
                 } else if (data.type === 'gameOver') {
                     showGameOver(data.winner);
                 } else if (data.type === 'newGame') {
@@ -1212,8 +1384,8 @@
             gameState.connection.on('disconnect', () => {
                 updateLinkStatus('Соединение разорвано', 'error');
                 if (gameState.mode === 'link') {
-                    alert('Соединение с оппонентом разорвано');
-                    showMenu();
+                    showMessage('Соединение с оппонентом разорвано');
+                    setTimeout(() => showMenu(), 2000);
                 }
             });
         }
@@ -1224,7 +1396,7 @@
             const code = codeInput.value.trim().toUpperCase();
             
             if (code.length !== 6) {
-                alert('Введите 6-значный код комнаты');
+                showMessage('Введите 6-значный код комнаты');
                 return;
             }
             
@@ -1232,17 +1404,16 @@
             gameState.isHost = false;
             gameState.playerSide = 'O';
             gameState.roomCode = code;
+            gameState.connectionType = 'link';
             
             updateLinkStatus('Подключение к комнате...', 'connecting');
             
-            // Create mock connection
-            gameState.connection = new SimpleConnection();
+            gameState.connection = new SimpleConnection('link');
             gameState.connection.connect(code, false);
             
-            gameState.connection.on('connect', () => {
+            gameState.connection.on('connect', (data) => {
                 updateLinkStatus('Подключено к игре!', 'connected');
                 
-                // Update game info
                 document.getElementById('playerXName').textContent = 'Оппонент (X)';
                 document.getElementById('playerOName').textContent = 'Вы (O)';
                 
@@ -1250,13 +1421,12 @@
                 startNewGame();
             });
             
-            // Handle incoming data
             gameState.connection.on('data', (data) => {
                 console.log('Received data:', data);
                 
                 if (data.type === 'move') {
                     makeMove(data.index, data.player);
-                    checkGameResult();
+                    setTimeout(() => checkGameResult(), 100);
                 } else if (data.type === 'gameOver') {
                     showGameOver(data.winner);
                 } else if (data.type === 'newGame') {
@@ -1267,129 +1437,185 @@
             gameState.connection.on('disconnect', () => {
                 updateLinkStatus('Соединение разорвано', 'error');
                 if (gameState.mode === 'link') {
-                    alert('Соединение с оппонентом разорвано');
-                    showMenu();
+                    showMessage('Соединение с оппонентом разорвано');
+                    setTimeout(() => showMenu(), 2000);
                 }
             });
             
             codeInput.value = '';
         }
         
-        // Create network game
-        function createNetworkGame() {
-            gameState.mode = 'network';
-            gameState.isHost = true;
-            gameState.playerSide = 'X';
-            
-            updateNetworkStatus('Ожидание игрока в сети...', 'connecting');
-            
-            // Create mock connection
-            gameState.connection = new SimpleConnection();
-            gameState.connection.connect(gameState.roomCode, true);
-            
-            gameState.connection.on('connect', () => {
-                updateNetworkStatus('Игрок в сети подключился!', 'connected');
-                
-                document.getElementById('playerXName').textContent = 'Вы (X)';
-                document.getElementById('playerOName').textContent = 'Игрок в сети (O)';
-                
-                showGame();
-                startNewGame();
-            });
-            
-            gameState.connection.on('data', (data) => {
-                if (data.type === 'move') {
-                    makeMove(data.index, data.player);
-                    checkGameResult();
-                } else if (data.type === 'gameOver') {
-                    showGameOver(data.winner);
-                } else if (data.type === 'newGame') {
-                    startNewGame();
-                }
-            });
-            
-            gameState.connection.on('disconnect', () => {
-                updateNetworkStatus('Соединение разорвано', 'error');
-                if (gameState.mode === 'network') {
-                    alert('Соединение разорвано');
-                    showMenu();
-                }
-            });
+        // Bluetooth functions
+        function checkBluetoothSupport() {
+            if (!navigator.bluetooth) {
+                updateBluetoothStatus('Браузер не поддерживает Bluetooth', 'error');
+                document.getElementById('scanDevicesBtn').disabled = true;
+                document.getElementById('advertiseBtn').disabled = true;
+                return false;
+            }
+            updateBluetoothStatus('Bluetooth доступен', 'connected');
+            return true;
         }
         
-        // Join network
-        function joinNetwork() {
-            const codeInput = document.getElementById('networkCodeInput');
-            const code = codeInput.value.trim().toUpperCase();
+        async function scanBluetoothDevices() {
+            if (!checkBluetoothSupport()) return;
             
-            if (!code) {
-                alert('Введите код из сети');
-                return;
-            }
+            updateBluetoothStatus('Поиск устройств...', 'connecting');
             
-            gameState.mode = 'network';
-            gameState.isHost = false;
-            gameState.playerSide = 'O';
-            gameState.roomCode = code;
-            
-            updateNetworkStatus('Подключение к сети...', 'connecting');
-            
-            // Create mock connection
-            gameState.connection = new SimpleConnection();
-            gameState.connection.connect(code, false);
-            
-            gameState.connection.on('connect', () => {
-                updateNetworkStatus('Подключено в сети!', 'connected');
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ namePrefix: 'TTT-' }],
+                    optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+                });
                 
-                document.getElementById('playerXName').textContent = 'Игрок в сети (X)';
+                await connectToBluetoothDevice(device);
+                
+            } catch (error) {
+                console.error('Bluetooth error:', error);
+                updateBluetoothStatus('Ошибка подключения: ' + error.message, 'error');
+            }
+        }
+        
+        async function connectToBluetoothDevice(device) {
+            updateBluetoothStatus('Подключение к ' + device.name, 'connecting');
+            
+            try {
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+                const characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+                
+                gameState.bluetoothDevice = device;
+                gameState.bluetoothCharacteristic = characteristic;
+                
+                // Listen for incoming data
+                await characteristic.startNotifications();
+                characteristic.addEventListener('characteristicvaluechanged', handleBluetoothData);
+                
+                updateBluetoothStatus('Подключено!', 'connected');
+                
+                // Start game
+                gameState.mode = 'bluetooth';
+                gameState.playerSide = 'O'; // Connecting player is O
+                gameState.opponentName = device.name || 'Bluetooth устройство';
+                
+                document.getElementById('playerXName').textContent = `${gameState.opponentName} (X)`;
                 document.getElementById('playerOName').textContent = 'Вы (O)';
                 
                 showGame();
                 startNewGame();
-            });
+                
+                // Handle disconnection
+                device.addEventListener('gattserverdisconnected', () => {
+                    disconnectBluetooth();
+                    if (gameState.mode === 'bluetooth') {
+                        showMessage('Bluetooth соединение разорвано');
+                        setTimeout(() => showMenu(), 2000);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Bluetooth connection error:', error);
+                updateBluetoothStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+        
+        async function advertiseBluetooth() {
+            if (!checkBluetoothSupport()) return;
             
-            gameState.connection.on('data', (data) => {
+            updateBluetoothStatus('Ожидание подключения...', 'connecting');
+            
+            // For now, we'll simulate advertising since Web Bluetooth Advertising API is limited
+            showMessage('Станьте видимым в настройках Bluetooth вашего устройства');
+            
+            // Simulate being ready to connect
+            gameState.mode = 'bluetooth';
+            gameState.playerSide = 'X'; // Advertiser is X
+            gameState.opponentName = 'Другой игрок';
+            
+            document.getElementById('playerXName').textContent = 'Вы (X)';
+            document.getElementById('playerOName').textContent = 'Ожидание игрока...';
+            
+            showGame();
+            startNewGame();
+            
+            // Simulate incoming connection after delay
+            setTimeout(() => {
+                if (gameState.mode === 'bluetooth') {
+                    gameState.opponentName = 'Bluetooth игрок';
+                    document.getElementById('playerOName').textContent = `${gameState.opponentName} (O)`;
+                    updateBluetoothStatus('Игрок подключился!', 'connected');
+                    updateGameStatus();
+                }
+            }, 3000);
+        }
+        
+        function handleBluetoothData(event) {
+            const value = event.target.value;
+            const decoder = new TextDecoder();
+            const dataStr = decoder.decode(value);
+            
+            try {
+                const data = JSON.parse(dataStr);
+                
                 if (data.type === 'move') {
                     makeMove(data.index, data.player);
-                    checkGameResult();
+                    setTimeout(() => checkGameResult(), 100);
                 } else if (data.type === 'gameOver') {
                     showGameOver(data.winner);
                 } else if (data.type === 'newGame') {
                     startNewGame();
                 }
-            });
-            
-            gameState.connection.on('disconnect', () => {
-                updateNetworkStatus('Соединение разорвано', 'error');
-                if (gameState.mode === 'network') {
-                    alert('Соединение разорвано');
-                    showMenu();
-                }
-            });
-            
-            codeInput.value = '';
+            } catch (error) {
+                console.error('Error parsing Bluetooth data:', error);
+            }
         }
         
-        // Check for room code in URL
+        function sendBluetoothData(data) {
+            if (!gameState.bluetoothCharacteristic) return;
+            
+            try {
+                const encoder = new TextEncoder();
+                const dataStr = JSON.stringify(data);
+                gameState.bluetoothCharacteristic.writeValue(encoder.encode(dataStr));
+            } catch (error) {
+                console.error('Error sending Bluetooth data:', error);
+            }
+        }
+        
+        function disconnectBluetooth() {
+            if (gameState.bluetoothDevice && gameState.bluetoothDevice.gatt.connected) {
+                gameState.bluetoothDevice.gatt.disconnect();
+            }
+            
+            gameState.bluetoothDevice = null;
+            gameState.bluetoothCharacteristic = null;
+            
+            updateBluetoothStatus('Отключено', 'error');
+        }
+        
+        function disconnectAll() {
+            if (gameState.connection) {
+                gameState.connection.disconnect();
+                gameState.connection = null;
+            }
+            
+            disconnectBluetooth();
+        }
+        
+        // Helper functions
+        function showMessage(message) {
+            alert(message);
+        }
+        
+        // Check URL parameters for auto-join
         function checkUrlParameters() {
             const urlParams = new URLSearchParams(window.location.search);
             const roomCode = urlParams.get('room');
-            const networkCode = urlParams.get('network');
             
             if (roomCode && roomCode.length === 6) {
-                // Auto-join link game
                 showOnlineLinkPanel();
                 document.getElementById('roomCodeInput').value = roomCode;
-                setTimeout(() => {
-                    joinByCode();
-                }, 1000);
-            } else if (networkCode) {
-                // Auto-join network game
-                showLocalNetworkPanel();
-                document.getElementById('networkCodeInput').value = networkCode;
-                setTimeout(() => {
-                    joinNetwork();
-                }, 1000);
+                setTimeout(() => joinByCode(), 1000);
             }
         }
         
@@ -1401,9 +1627,7 @@
         
         // Handle before unload
         window.addEventListener('beforeunload', () => {
-            if (gameState.connection) {
-                gameState.connection.disconnect();
-            }
+            disconnectAll();
         });
     </script>
 </body>
